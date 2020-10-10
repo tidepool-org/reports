@@ -39,7 +39,7 @@ optional arguments:
 
 ## Development
 
-The tool uses several libraries to do the work.
+The tool uses several libraries to do the actual work:
 
 
 | Library | Usage |
@@ -53,6 +53,18 @@ The tool uses several libraries to do the work.
 | [`graphviz`](https://github.com/xflr6/graphviz) | GraphViz renderer, only used with `--graph` (experimental) |
 | [`XlsxWriter`](https://github.com/jmcnamara/XlsxWriter) | Excel XLSX renderer, only used with `--excel` |
 
+The script is structured as follows:
+
+```
+report.yml       # app configuration file
+logging.conf     # logging configuration file
+report.py
+|- jira          # classes for interacting with Jira
+|  |- *.py
+|- generators    # generators corresponding to each generator CLI flag
+|  |- *.py
+|- templates     # template files (for --html and --pdf)
+   |- *.*
 
 ## Templates
 
