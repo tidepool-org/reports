@@ -2,6 +2,8 @@
 
 This repo contains a Python script that can generate various reports from Tidepool's Jira project management tool.
 
+[![Build Status](https://travis-ci.com/tidepool-org/reports.svg?branch=main)](https://travis-ci.com/tidepool-org/reports)
+
 ## Installation
 
 This tool uses some features available in Python 3.8 or later.
