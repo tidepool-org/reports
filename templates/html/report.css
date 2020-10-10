@@ -1,0 +1,109 @@
+body.report {
+    margin: 0.5in;
+    font-family: 'Helvetica Neue';
+    font-size: 10pt;
+}
+
+@media print {
+    body.report {
+        margin: 0in;
+    }
+    a {
+        color: blue !important;
+    }
+    a[href]:after {
+        content: none !important;
+    }
+}
+
+h2 {
+    page-break-before: always !important;
+}
+table {
+    overflow: visible !important;
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+thead {
+    display: table-header-group;
+}
+tbody {
+    display: table-row-group;
+}
+tfoot {
+    display: table-row-group;
+}
+tr {
+    vertical-align: top;
+    page-break-inside: avoid !important;
+}
+tr:nth-child(even) {
+    background-color: whitesmoke;
+}
+tr:nth-child(odd) {
+    background-color: white;
+}
+th {
+    color: black !important;
+    background-color: silver !important;
+    text-align: left;
+    border: 1px solid grey;
+    padding: 0.1in;
+}
+td {
+    border: 1px solid grey;
+    padding: 0.1in;
+}
+
+.key_icon {
+    height: 1em;
+    display: none;
+}
+/* left_margin + key + summary + requirements + tests + risks + right_margin <= 14in */
+.key {
+    width: 0.8in;
+    white-space: nowrap;
+}
+.summary {
+    width: 3in;
+}
+.requirements {
+    width: 3in;
+}
+.tests {
+    width: 3in;
+}
+.tests .summary {
+    width: 2.2in;
+}
+.tests .status {
+    display: none; /* hidden */
+    width: 0.9in;
+    white-space: nowrap;
+}
+.risks {
+    width: 3in;
+}
+.risks .summary {
+    width: 2.2in;
+}
+
+.blocked {
+    background-color: orange !important;
+}
+
+body.header {
+    width: 14in;
+}
+
+div.header {
+    width: 100%;
+    display: table-cell;
+    vertical-align: middle;
+    text-align: right;
+}
+img.logo {
+    max-width: 2in;
+}

@@ -1,0 +1,45 @@
+@page {
+    size: 14in 8.5in; /* US Legal */
+    margin: 0.5in;
+    @bottom-left {
+        margin: 10pt 0 30pt 0;
+        border-top: .25pt solid gray;
+        color: black;
+        content: "Tidepool Loop 1.0 Verification Test Report";
+    }
+    @bottom-right {
+        margin: 10pt 0 30pt 0;
+        border-top: .25pt solid gray;
+        color: black;
+        content: "Page " counter(page) " of " counter(pages);
+    }
+}
+body {
+    font-size: 14pt;
+    line-height: 1.428;
+}
+table.issues {
+    width: 13in;
+}
+table, tr, th, td {
+    border: 1px solid gray;
+    border-collapse: collapse;
+}
+th {
+    text-align: left;
+}
+th, td {
+    padding: 0.5em;
+}
+h2 {
+    page-break-before: always !important;
+}
+tr {
+    page-break-inside: avoid !important;
+}
+footer {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+}

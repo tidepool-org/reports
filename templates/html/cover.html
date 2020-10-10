@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <title>{{ config['title'] }} {{ config['subject'] }}</title>
+    <link rel="stylesheet" href="{{ basename(config['output']['style']) }}">
+</head>
+<body>
+    <div class="cover">
+        <img class="logo" src="{{ basename(config['output']['logo']) }}"/>
+        <h1>{{ config['title'] }} {{ config['subject'] }}</h1>
+        <img class="splash" src="{{ basename(config['output']['splash']) }}"/>
+        <div class="generated">Generated on {{ now }}</div>
+    </div>
+</body>
+</html>

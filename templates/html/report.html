@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <title>{{ config['title'] }} {{ config['subject'] }}</title>
+    <link rel="stylesheet" href="{{ basename(config['output']['style']) }}">
+</head>
+<body class="report">
+    {% macro issue_key(issue) -%}
+        <span class="text-nowrap"><img class="key_icon" src="{{ issue.icon }}"/><a href="{{ issue.url }}">{{ issue.key }}</a></span>
+    {%- endmacro %}
+    {% macro passed() -%}
+        <strong class="text-nowrap">PASS &#x2705;</strong>
+    {%- endmacro %}
+    {% macro blocked() -%}
+        <strong class="text-nowrap">BLOCKED &#x274C;</strong>
+    {%- endmacro %}
+
+    <h1>Summary</h1>
+    <p>{{ jira.epics.values()|count }} epics</p>
+    <p>{{ jira.stories.values()|count }} stories</p>
+
+    <h1>Stories Grouped by Epics</h1>
+    {% for epic in jira.epics.values()|keysort %}
+        {% if epic.stories %}
+            <h2>{{ issue_key(epic) }}: {{ epic.summary }}</h2>
+            <p>{{ epic.description|prettify_links|safe }}</p>
+            <table class="table table-bordered table-condensed table-striped issues">
+                <thead>
+                    <tr>
+                        <th class="key">Issue</th>
+                        <th class="summary">Summary</th>
+                        <th class="requirements">Functional Requirements</th>
+                        <th class="risks">Mitigated Risks</th>
+                        <th class="tests">Verification Tests</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for story in epic.stories|keysort %}
+                    {% if story.status != 'Blocked' -%}
+                    <tr>
+                    {% else %}
+                    <tr class="blocked">
+                    {% endif %}
+                        <td class="key">{{ issue_key(story) }}</td>
+                        <td class="summary">{{ story.summary }}</td>
+                        <td class="requirements">
+                            {% if story.requirements %}
+                                {{ story.requirements|prettify_links|truncate(100)|safe }}
+                            {% else %}
+                                {{ story.done_criteria|prettify_links|truncate(100)|safe }}
+                            {% endif %}
+                        </td>
+                        <td class="risks">
+                            {% if story.risks %}
+                            <table class="table table-bordered table-condensed table-striped">
+                                <tbody>
+                                    {% for risk in story.risks|keysort %}
+                                    <tr>
+                                        <td class="key">{{ issue_key(risk) }}</td>
+                                        <td class="summary">{{ risk.summary }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% endif %}
+                        </td>
+                        <td class="tests">
+                            {% if story.tests %}
+                            <table class="table table-bordered table-condensed table-striped">
+                                <tbody>
+                                    {% for test in story.tests|keysort %}
+                                    <tr>
+                                        <td class="key">{{ issue_key(test) }}</td>
+                                        <td class="summary">{{ test.summary }}</td>
+                                        <td class="status">
+                                            {% if test.status_category == 'Done' %}
+                                                {{ passed() }}
+                                            {% else %}
+                                                {{ test.status_category }}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% endif %}
+                            {% if story.test_strategy %}
+                                {% if story.status_category == 'Done' %}
+                                    {{ passed() }}
+                                {% elif story.status == 'Blocked' %}
+                                    {{ blocked() }}
+                                {% endif %}
+                                {{ story.test_strategy|prettify_links|truncate(100)|safe }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                </tfoot>
+            </table>
+        {% endif %}
+    {% endfor %}
+</body>
+</html>

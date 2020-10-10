@@ -1,0 +1,7 @@
+.gitignore
+.dockerignore
+*.log
+output
+__pycache__
+Dockerfile
+*.sh
