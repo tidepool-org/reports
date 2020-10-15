@@ -14,9 +14,14 @@ $ cd reports
 $ pip3 install -r requirements.txt
 ```
 
+If you plan to generate PDF or GraphViz outputs, you'll need to follow the additional installation instructions here:
+
+* `pdfkit`: https://github.com/JazzCore/python-pdfkit
+* `graphviz`: https://github.com/xflr6/graphviz
+
 ## Usage
 
-This tool uses environment variables `JIRA_BASE_URL`, `JIRA_USERNAME`, and `JIRA_API_TOKEN` to configure the Jira API access. You can either set the variables in shell, or add them to the `.env` file in the same folder as the tool.
+This tool uses environment variables `JIRA_BASE_URL`, `JIRA_USERNAME`, and `JIRA_API_TOKEN` to configure the Jira API access. You can either set the variables in shell, or add them to the local `.env` file in the same folder as the tool. Do not add credentials to this repository.
 
 Go to your [Atlassian account security settings](https://id.atlassian.com/manage-profile/security) to create a new Jira API token.
 
@@ -67,6 +72,7 @@ report.py
 |  |- *.py
 |- templates     # template files (for --html and --pdf)
    |- *.*
+```
 
 ## Templates
 
