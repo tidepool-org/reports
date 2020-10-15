@@ -6,7 +6,7 @@ import logging
 import logging.config
 import argparse
 import yaml
-from datetime import date
+from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -38,7 +38,7 @@ def main():
 
     args = parser.parse_args()
     config = read_config(args.config)
-    generated = date.today()
+    generated = datetime.today().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')
     logger.info('connecting to Jira')
     jira = JiraHelper(config['jira'])
     logger.info('generating outputs')
