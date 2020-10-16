@@ -191,6 +191,7 @@ class Excel():
             row = max(req_row + 1, risk_row, row) - 1
             self.write_id(report, req_row, columns['req_id'].column, req, end_row = row)
             self.write_key_and_summary(report, req_row, columns['req_key'].column, req, end_row = row)
+            self.write(report, req_row, columns['req_description'].column, req.description, end_row = row)
             row += 1
 
         report.ignore_errors({ 'number_stored_as_text': f'{self.range_address(0, 0, row - 1, columns.last)}' })

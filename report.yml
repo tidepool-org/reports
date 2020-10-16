@@ -79,16 +79,17 @@ excel:
       name: Traceability
       aggregate_risks: true
       columns:
-        - { width: 7,  key: req_id,        label: Req ID }
-        - { width: 10, key: req_key,       label: Req Key }
-        - { width: 50, key: req_summary,   label: Req Summary }
-        - { width: 10, key: risk_key,      label: Risk Key }
-        - { width: 50, key: risk_summary,  label: Risk Summary }
-        - { width: 10, key: story_key,     label: Story Key }
-        - { width: 50, key: story_summary, label: Story Summary }
-        - { width: 10, key: test_key,      label: Test Key }
-        - { width: 50, key: test_summary,  label: Test Summary }
-        - { width: 11, key: test_status,   label: Test Status }
+        - { width: 7,  key: req_id,          label: Req ID }
+        - { width: 10, key: req_key,         label: Req Key }
+        - { width: 50, key: req_summary,     label: Req Summary }
+        - { width: 50, key: req_description, label: Req Description }
+        - { width: 10, key: risk_key,        label: Risk Key }
+        - { width: 50, key: risk_summary,    label: Risk Summary }
+        - { width: 10, key: story_key,       label: Story Key }
+        - { width: 50, key: story_summary,   label: Story Summary }
+        - { width: 10, key: test_key,        label: Test Key }
+        - { width: 50, key: test_summary,    label: Test Summary }
+        - { width: 11, key: test_status,     label: Test Status }
     risks:
       name: Hazard Analysis
       columns:
