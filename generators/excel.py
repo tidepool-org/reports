@@ -56,14 +56,34 @@ class Excel():
         self.jira = jira
         self.config = config
 
+    @property
+    def generated_date(self):
+        return self.config['generated'].astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')
+
+    @property
+    def title(self):
+        return self.config['title']
+
+    @property
+    def subject(self):
+        return self.config['subject']
+
+    @property
+    def font_name(self):
+        return self.config['font_name']
+
+    @property
+    def font_size(self):
+        return self.config['font_size']
+
     def generate(self) -> None:
         output_file = self.config['output']['report']
         logger.info(f"generating {output_file}")
 
         book = xlsxwriter.Workbook(output_file)
         book.set_properties({
-            'title':    self.config['title'],
-            'subject':  self.config['subject'],
+            'title':    self.title,
+            'subject':  self.subject,
             'author':   self.config['author'],
             'manager':  self.config['manager'],
             'company':  self.config['company'],
@@ -73,16 +93,16 @@ class Excel():
         })
         book.set_size(1600, 1200)
 
-        self.common_format_base = {'font_name': self.config['font_name'], 'font_size': self.config['font_size'], 'align': 'left', 'valign': 'top', 'text_wrap': True, 'border': 1}
+        self.common_format_base = {'font_name': self.font_name, 'font_size': self.font_size, 'align': 'left', 'valign': 'top', 'text_wrap': True, 'border': 1}
         self.common_format = book.add_format(self.common_format_base)
 
-        self.header_format = book.add_format({**self.common_format_base, **{'bold': True, 'font_color': 'white', 'bg_color': 'gray', 'font_size': self.config['font_size'] + 2}})
+        self.header_format = book.add_format({**self.common_format_base, **{'bold': True, 'font_color': 'white', 'bg_color': 'gray', 'font_size': self.font_size + 2}})
 
         self.key_format = book.get_default_url_format()
         self.key_format.set_align('top')
         self.key_format.set_border(1)
-        self.key_format.set_font_name(self.config['font_name'])
-        self.key_format.set_font_size(self.config['font_size'])
+        self.key_format.set_font_name(self.font_name)
+        self.key_format.set_font_size(self.font_size)
 
         self.bold_format = book.add_format({**self.common_format_base, **{'bold': True}})
         self.summary_format = book.add_format(self.common_format_base)
@@ -105,12 +125,12 @@ class Excel():
     def add_cover_sheet(self, book: xlsxwriter.Workbook) -> None:
         cover = book.add_worksheet(self.config['sheets']['cover'])
 
-        title_format = book.add_format({'font_name': self.config['font_name'], 'font_size': self.config['font_size'] + 10, 'bold': True})
+        title_format = book.add_format({'font_name': self.font_name, 'font_size': self.font_size + 10, 'bold': True})
         cover.set_column(0, 0, 120)
-        self.write(cover, 0, 0, f"{self.config['title']} {self.config['subject']}", title_format)
-        subtitle_format = book.add_format({'font_name': self.config['font_name'], 'font_size': self.config['font_size'] + 4, 'bold': True})
-        self.write(cover, 1, 0, f"Generated on {self.config['generated']}", subtitle_format)
-        cover.insert_image(2, 0, self.config['images']['splash'], {'object_position': 1, 'x_scale': 0.7, 'y_scale': 0.7})
+        self.write(cover, 0, 0, f"{self.title} {self.subject}", title_format)
+        subtitle_format = book.add_format({'font_name': self.font_name, 'font_size': self.font_size + 4, 'bold': True})
+        self.write(cover, 1, 0, f"Generated on {self.generated_date}", subtitle_format)
+        cover.insert_image(2, 0, self.config['images']['splash'], {'object_position': 1, 'x_scale': 0.65, 'y_scale': 0.65})
         cover.set_row(2, 500)
         self.set_paper(cover, 2, 1)
 
@@ -344,5 +364,8 @@ class Excel():
         sheet.print_area(0, 0, rows - 1, columns - 1)
 
     def set_header_and_footer(self, sheet: xlsxwriter.worksheet) -> None:
-        sheet.set_header(f"""&L&"{self.config['font_name']},Bold"&{self.config['font_size'] + 6}{self.config['title']} {self.config['subject']}""" + f"""&R&[Picture]""", {'image_right': self.config['images']['logo']})
-        sheet.set_footer(f"""&L&"{self.config['font_name']},Regular"&{self.config['font_size'] + 2}Generated on {self.config['generated']}""" + f"""&RPage &P of &N""")
+        sheet.set_header(f"""&L&"{self.font_name},Bold"&{self.font_size + 6}{self.title} {self.subject}""" +
+                         f"""&C&"{self.font_name},Bold"&{self.font_size + 6}{sheet.name}"""
+                         f"""&R&[Picture]""", {'image_right': self.config['images']['logo']})
+        sheet.set_footer(f"""&L&"{self.font_name},Regular"&{self.font_size + 2}Generated on {self.generated_date}""" +
+                         f"""&RPage &P of &N""")

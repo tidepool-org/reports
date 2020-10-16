@@ -38,7 +38,7 @@ def main():
 
     args = parser.parse_args()
     config = read_config(args.config)
-    generated = datetime.today().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')
+    generated = datetime.today()
     logger.info('connecting to Jira')
     jira = JiraHelper(config['jira'])
     logger.info('generating outputs')
