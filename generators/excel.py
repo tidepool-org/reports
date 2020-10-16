@@ -123,7 +123,8 @@ class Excel():
     # cover
     #
     def add_cover_sheet(self, book: xlsxwriter.Workbook) -> None:
-        cover = book.add_worksheet(self.config['sheets']['cover'])
+        props = self.config['sheets']['cover']
+        cover = book.add_worksheet(props['name'])
 
         title_format = book.add_format({'font_name': self.font_name, 'font_size': self.font_size + 10, 'bold': True})
         cover.set_column(0, 0, 120)
@@ -138,8 +139,9 @@ class Excel():
     # requirements
     #
     def add_report_sheet_by_requirements(self, book: xlsxwriter.Workbook) -> None:
-        report = book.add_worksheet(self.config['sheets']['report']['requirements'])
-        columns = Columns(self.config['columns']['requirements'])
+        props = self.config['sheets']['requirements']
+        report = book.add_worksheet(props['name'])
+        columns = Columns(props['columns'])
         self.set_headings(report, columns)
 
         req_format = book.add_format(self.common_format_base)
@@ -153,18 +155,18 @@ class Excel():
             log_issue(req)
             req_row = row
 
-            # risks, sorted by issue key
-            risk_row = req_row
-            for risk in self.jira.sorted_by_key(req.risks):
-                log_issue(risk, 1)
-                self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk)
-                risk_row += 1
+            # directly linked risks
+            risks = set(req.risks)
 
             # stories, sorted by issue key
             story_row = req_row
             for story in self.jira.sorted_by_key(req.stories):
                 log_issue(story, 1)
                 stories.add(story.key)
+
+                # add to aggregate risks
+                if props['aggregate_risks']:
+                    risks.update(self.jira.get_issue(story.key).risks)
 
                 # tests, sorted by issue key
                 test_row = story_row
@@ -178,6 +180,13 @@ class Excel():
                 row = max(story_row + 1, test_row) - 1
                 self.write_key_and_summary(report, story_row, columns['story_key'].column, story, end_row = row)
                 row += 1
+
+            # risks, sorted by issue key
+            risk_row = req_row
+            for risk in self.jira.sorted_by_key(risks):
+                log_issue(risk, 1)
+                self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk)
+                risk_row += 1
 
             row = max(req_row + 1, risk_row, row) - 1
             self.write_id(report, req_row, columns['req_id'].column, req, end_row = row)
@@ -194,8 +203,9 @@ class Excel():
     # epics
     #
     def add_report_sheet_by_epics(self, book: xlsxwriter.Workbook):
-        report = book.add_worksheet(self.config['sheets']['report']['epics'])
-        columns = Columns(self.config['columns']['epics'])
+        props = self.config['sheets']['epics']
+        report = book.add_worksheet(props['name'])
+        columns = Columns(props['columns'])
         self.set_headings(report, columns)
 
         epics = self.jira.epics
@@ -255,8 +265,9 @@ class Excel():
     # risks
     #
     def add_report_sheet_by_risks(self, book: xlsxwriter.Workbook):
-        report = book.add_worksheet(self.config['sheets']['report']['risks'])
-        columns = Columns(self.config['columns']['risks'])
+        props = self.config['sheets']['risks']
+        report = book.add_worksheet(props['name'])
+        columns = Columns(props['columns'])
         self.set_headings(report, columns)
 
         risks = self.jira.risks

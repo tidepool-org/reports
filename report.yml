@@ -73,48 +73,51 @@ excel:
   font_size: 10
   sheets:
     # sheet names max 31 characters
-    cover: Cover
-    report:
-      requirements: Traceability
-      risks: Hazard Analysis
-      epics: Epics
-  columns:
+    cover:
+      name: Cover
     requirements:
-      - { width: 7,  key: req_id,        label: Req ID }
-      - { width: 10, key: req_key,       label: Req Key }
-      - { width: 50, key: req_summary,   label: Req Summary }
-      - { width: 10, key: risk_key,      label: Risk Key }
-      - { width: 50, key: risk_summary,  label: Risk Summary }
-      - { width: 10, key: story_key,     label: Story Key }
-      - { width: 50, key: story_summary, label: Story Summary }
-      - { width: 10, key: test_key,      label: Test Key }
-      - { width: 50, key: test_summary,  label: Test Summary }
-      - { width: 11, key: test_status,   label: Test Status }
-    epics:
-      - { width: 10, key: epic_key,      label: Epic Key }
-      - { width: 50, key: epic_sumamry,  label: Epic Summary }
-      - { width: 10, key: story_key,     label: Story Key }
-      - { width: 50, key: story_summary, label: Story Summary }
-      - { width: 10, key: risk_key,      label: Risk Key }
-      - { width: 50, key: risk_summary,  label: Risk Summary }
-      - { width: 10, key: test_key,      label: Test Key }
-      - { width: 50, key: test_summary,  label: Test Summary }
-      - { width: 11, key: test_status,   label: Test Status }
+      name: Traceability
+      aggregate_risks: true
+      columns:
+        - { width: 7,  key: req_id,        label: Req ID }
+        - { width: 10, key: req_key,       label: Req Key }
+        - { width: 50, key: req_summary,   label: Req Summary }
+        - { width: 10, key: risk_key,      label: Risk Key }
+        - { width: 50, key: risk_summary,  label: Risk Summary }
+        - { width: 10, key: story_key,     label: Story Key }
+        - { width: 50, key: story_summary, label: Story Summary }
+        - { width: 10, key: test_key,      label: Test Key }
+        - { width: 50, key: test_summary,  label: Test Summary }
+        - { width: 11, key: test_status,   label: Test Status }
     risks:
-      - { width: 10, key: risk_key,             label: Risk Key }
-      - { width: 50, key: risk_summary,         label: Risk Summary }
-      - { width: 30, key: sequence,             label: Sequence of Events }
-      - { width: 25, key: harm,                 label: Harm }
-      - { width: 12, key: hazard,               label: Hazard Category }
-      - { width: 11, key: initial_severity,     label: Initial Severity }
-      - { width: 11, key: initial_probability,  label: Initial Probability }
-      - { width: 11, key: initial_risk,         label: Initial Risk }
-      - { width: 10, key: mitigation_key,       label: Mitigation Key }
-      - { width: 50, key: mitigation_summary,   label: Mitigation Summary }
-      - { width: 11, key: residual_severity,    label: Residual Severity }
-      - { width: 11, key: residual_probability, label: Residual Probability }
-      - { width: 11, key: residual_risk,        label: Residual Risk }
-      - { width: 10, key: benefit,              label: Benefit-Risk Analysis }
+      name: Hazard Analysis
+      columns:
+        - { width: 10, key: risk_key,             label: Risk Key }
+        - { width: 50, key: risk_summary,         label: Risk Summary }
+        - { width: 30, key: sequence,             label: Sequence of Events }
+        - { width: 25, key: harm,                 label: Harm }
+        - { width: 12, key: hazard,               label: Hazard Category }
+        - { width: 11, key: initial_severity,     label: Initial Severity }
+        - { width: 11, key: initial_probability,  label: Initial Probability }
+        - { width: 11, key: initial_risk,         label: Initial Risk }
+        - { width: 10, key: mitigation_key,       label: Mitigation Key }
+        - { width: 50, key: mitigation_summary,   label: Mitigation Summary }
+        - { width: 11, key: residual_severity,    label: Residual Severity }
+        - { width: 11, key: residual_probability, label: Residual Probability }
+        - { width: 11, key: residual_risk,        label: Residual Risk }
+        - { width: 10, key: benefit,              label: Benefit-Risk Analysis }
+    epics:
+      name: Epics
+      columns:
+        - { width: 10, key: epic_key,      label: Epic Key }
+        - { width: 50, key: epic_sumamry,  label: Epic Summary }
+        - { width: 10, key: story_key,     label: Story Key }
+        - { width: 50, key: story_summary, label: Story Summary }
+        - { width: 10, key: risk_key,      label: Risk Key }
+        - { width: 50, key: risk_summary,  label: Risk Summary }
+        - { width: 10, key: test_key,      label: Test Key }
+        - { width: 50, key: test_summary,  label: Test Summary }
+        - { width: 11, key: test_status,   label: Test Status }
   images:
     splash: templates/images/Tidepool Loop + Watch + Pod - 002.png
     logo: templates/images/Tidepool_Logo_Light_Large.png
