@@ -40,7 +40,7 @@ class JiraIssue(JiraBase):
 
     @property
     def stories(self):
-        return [ link for link in self.links if link.is_story ]
+        return [ link for link in self.links if link.is_story and link.link_type != 'Risk Mitigation' ]
 
     @property
     def tests(self):
@@ -48,4 +48,4 @@ class JiraIssue(JiraBase):
 
     @property
     def risks(self):
-        return [ link for link in self.links if link.is_risk ]
+        return [ link for link in self.links if link.is_risk or link.link_type == 'Risk Mitigation' ]
