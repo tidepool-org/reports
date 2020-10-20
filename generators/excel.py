@@ -1,8 +1,10 @@
 import logging
 from typing import Tuple, List, NamedTuple, Optional
+from functools import cached_property
 import re
 import xlsxwriter
 from enum import IntEnum
+from html.parser import HTMLParser
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +16,106 @@ RED_X = '\u274C'
 
 PASSED = f'{GREEN_CHECKMARK} PASSED '
 BLOCKED = f'{RED_X} BLOCKED '
+
+class BaseSegment():
+    def __init__(self):
+        self.closed = False
+
+    def close(self):
+        self.closed = True
+
+    @property
+    def is_closed(self):
+        return self.closed
+
+    @property
+    def is_empty(self):
+        pass
+
+class Text(BaseSegment):
+    def __init__(self, text):
+        super().__init__()
+        self.text = text
+
+    def append(self, text):
+        self.text += text
+
+    @property
+    def is_empty(self):
+        return len(self.text) == 0
+
+    @property
+    def rendered(self):
+        return self.text
+
+class HyperLink(BaseSegment):
+    def __init__(self, url, text = None):
+        super().__init__()
+        self.url = url
+        self.text = text
+
+    def append(self, text):
+        self.text = text
+
+    @property
+    def pretty_link(self):
+        if self.text.startswith('https://docs.google'):
+            return 'Google Document'
+        return self.text
+
+    @property
+    def is_empty(self):
+        return False
+
+    @property
+    def rendered(self):
+        return self.pretty_link
+
+class HtmlToExcel(HTMLParser):
+    def __init__(self, bold_format):
+        super().__init__()
+        self.nodes = [ ]
+        self.bold_format = bold_format
+
+    def parse(self, text):
+        self.reset()
+        self.feed(text)
+        self.close()
+        return self
+
+    @property
+    def is_empty(self):
+        return len(self.nodes) == 0
+
+    @property
+    def last_node(self):
+        return self.nodes[-1]
+
+    def add_node(self, node):
+        self.nodes.append(node)
+
+    def append_to_last(self, text):
+        self.last_node.append(text)
+
+    def handle_starttag(self, tag, attrs):
+        if tag == 'a':
+            href = next(attr[1] for attr in attrs if attr[0] == 'href')
+            self.add_node(HyperLink(href))
+
+    def handle_endtag(self, tag):
+        self.last_node.close()
+
+    def handle_data(self, data):
+        stripped = ' '.join(data.split())
+        if len(stripped) > 0:
+            if self.is_empty or self.last_node.is_closed:
+                self.add_node(Text(stripped))
+            else:
+                self.append_to_last(stripped)
+
+    @cached_property
+    def rendered(self):
+        return '\n'.join(seg.rendered for seg in self.nodes if not seg.is_empty)
 
 class Column(NamedTuple):
     column: int
@@ -191,7 +293,7 @@ class Excel():
             row = max(req_row + 1, risk_row, row) - 1
             self.write_id(report, req_row, columns['req_id'].column, req, end_row = row)
             self.write_key_and_summary(report, req_row, columns['req_key'].column, req, end_row = row)
-            self.write(report, req_row, columns['req_description'].column, req.description, end_row = row)
+            self.write_html(report, req_row, columns['req_description'].column, req.description, end_row = row)
             row += 1
 
         report.ignore_errors({ 'number_stored_as_text': f'{self.range_address(0, 0, row - 1, columns.last)}' })
@@ -357,6 +459,10 @@ class Excel():
     def write_url(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None, end_col: int = None) -> None:
         self.merge(sheet, row, col, end_row, end_col)
         sheet.write_url(row, col, issue.url, self.key_format, issue.key, issue.url)
+
+    def write_html(self, sheet: xlsxwriter.worksheet, row: int, col: int, value, end_row: int = None, end_col: int = None) -> None:
+        html = HtmlToExcel(self.bold_format).parse(value)
+        self.write(sheet, row, col, html.rendered, self.summary_format, end_row, end_col)
 
     def write_status(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None) -> None:
         if issue.is_done:
