@@ -209,17 +209,9 @@ class Excel():
         self.bold_format = book.add_format({**self.common_format_base, **{'bold': True}})
         self.summary_format = book.add_format(self.common_format_base)
 
-        logger.info('adding cover sheet')
-        self.add_cover_sheet(book)
-        if 'requirements' in self.config['sheets']:
-            logger.info('adding report sheet by requirements')
-            self.add_report_sheet_by_requirements(book)
-        if 'risks' in self.config['sheets']:
-            logger.info('adding report sheet by risks')
-            self.add_report_sheet_by_risks(book)
-        if 'epics' in self.config['sheets']:
-            logger.info('adding report sheet by epics')
-            self.add_report_sheet_by_epics(book)
+        for sheet_id, sheet in self.config['sheets'].items():
+            generator_method = getattr(self.__class__, sheet['generator'])
+            generator_method(self, book)
 
         logger.info(f"closing file {output_file}")
         book.close()
@@ -229,6 +221,7 @@ class Excel():
     #
     def add_cover_sheet(self, book: xlsxwriter.Workbook) -> None:
         props = self.config['sheets']['cover']
+        logger.info(f"adding cover sheet '{props['name']}'")
         cover = book.add_worksheet(props['name'])
 
         title_format = book.add_format({'font_name': self.font_name, 'font_size': self.font_size + 10, 'bold': True})
@@ -245,8 +238,9 @@ class Excel():
     #
     # requirements
     #
-    def add_report_sheet_by_requirements(self, book: xlsxwriter.Workbook) -> None:
+    def add_requirements_sheet(self, book: xlsxwriter.Workbook) -> None:
         props = self.config['sheets']['requirements']
+        logger.info(f"adding report sheet '{props['name']}'")
         report = book.add_worksheet(props['name'])
         columns = Columns(props['columns'])
         self.set_headings(report, columns)
@@ -310,8 +304,9 @@ class Excel():
     #
     # epics
     #
-    def add_report_sheet_by_epics(self, book: xlsxwriter.Workbook):
+    def add_epics_sheet(self, book: xlsxwriter.Workbook):
         props = self.config['sheets']['epics']
+        logger.info(f"adding report sheet '{props['name']}'")
         report = book.add_worksheet(props['name'])
         columns = Columns(props['columns'])
         self.set_headings(report, columns)
@@ -372,8 +367,9 @@ class Excel():
     #
     # risks
     #
-    def add_report_sheet_by_risks(self, book: xlsxwriter.Workbook):
+    def add_risks_sheet(self, book: xlsxwriter.Workbook):
         props = self.config['sheets']['risks']
+        logger.info(f"adding report sheet '{props['name']}'")
         report = book.add_worksheet(props['name'])
         columns = Columns(props['columns'])
         self.set_headings(report, columns)

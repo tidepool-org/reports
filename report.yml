@@ -74,6 +74,7 @@ excel:
   sheets:
     # sheet names max 31 characters
     cover:
+      generator: add_cover_sheet # method name in excel.py
       name: Cover
       splash:
         image: templates/excel/Tidepool Loop + Watch + Pod - 002.png
@@ -92,6 +93,7 @@ excel:
         • Hazard Analysis: This spreadsheet tab demonstrates Tidepool’s Risk and Hazard analysis of Tidepool Loop. Columns are included for each risk, including a summary, the potential harm and hazard category, risk assessment prior to mitigation, details of any mitigation, and risk assessment post-mitigation.
         
     requirements:
+      generator: add_requirements_sheet # method name in excel.py
       name: Traceability
       aggregate_risks: true
       columns:
@@ -107,6 +109,7 @@ excel:
         - { width: 50, key: test_summary,    label: Test Summary }
         - { width: 11, key: test_status,     label: Test Status }
     risks:
+      generator: add_risks_sheet # method name in excel.py
       name: Hazard Analysis
       columns:
         - { width: 10, key: risk_key,             label: Risk Key }
@@ -124,6 +127,7 @@ excel:
         - { width: 11, key: residual_risk,        label: Residual Risk Score }
         - { width: 10, key: benefit,              label: Benefit-Risk Analysis }
     epics:
+      generator: add_epics_sheet # method name in excel.py
       name: All Development Tickets
       columns:
         - { width: 10, key: epic_key,      label: Epic Key }
