@@ -4,6 +4,7 @@ import logging
 import json
 import re
 import atlassian
+from requests.exceptions import HTTPError
 
 from .issue import JiraIssue
 from .epic import JiraEpic
@@ -30,10 +31,10 @@ class JiraHelper():
             password=self.config['api_token'])
         self.queries = self.config['queries']
         self.fields = self.config['fields']
-        logger.debug("fetch Jira fields")
+        logger.info("fetching Jira fields")
         self.all_fields = self.jira.get_all_fields()
         logger.debug(f"Jira fields: {json.dumps(self.all_fields, indent=4)}")
-        logger.debug("fetch Jira custom field schemas")
+        logger.info("fetching Jira custom field schemas")
         self.schemas = {}
         for key, field_id in self.fields.items():
             try:
@@ -41,8 +42,10 @@ class JiraHelper():
                 # not exposed in Atlassian Jira python API...
                 url = f"rest/api/2/field/{custom_key}/option"
                 self.schemas[key] = self.jira.get(url)
-            except:
+            except StopIteration:
                 pass
+            except HTTPError:
+                logger.error(f"failed to fetch custom field schema for {custom_key}")
         logger.debug(f"Jira custom field schemas: {json.dumps(self.schemas, indent=4)}")
 
     def get_weight(self, key, id):
@@ -54,32 +57,32 @@ class JiraHelper():
 
     @cached_property
     def requirements(self):
-        logger.debug('fetching requirements')
+        logger.info('fetching requirements')
         return self.to_dict(self.jql(self.queries['requirements']), JiraRequirement)
 
     @cached_property
     def risks(self):
-        logger.debug('fetching risks')
+        logger.info('fetching risks')
         return self.to_dict(self.jql(self.queries['risks']), JiraRisk)
 
     @cached_property
     def epics(self):
-        logger.debug('fetching epics')
+        logger.info('fetching epics')
         return self.to_dict(self.jql(self.queries['epics']), JiraEpic)
 
     @cached_property
     def stories(self):
-        logger.debug('fetching stories')
+        logger.info('fetching stories')
         return self.to_dict(self.jql(self.queries['stories']), JiraStory)
 
     @cached_property
     def tests(self):
-        logger.debug('fetching tests')
+        logger.info('fetching tests')
         return self.to_dict(self.jql(self.queries['tests']), JiraTest)
 
     @cached_property
     def testruns(self):
-        logger.debug('fetching test runs')
+        logger.info('fetching test runs')
         return self.to_dict(self.jql(self.queries['testruns']), JiraTest)
 
     @cached_property
@@ -99,11 +102,11 @@ class JiraHelper():
         results = [ ]
         start = 0
         while True:
-            logger.info(f"fetching offset {start} of query [{query}]")
+            logger.debug(f"fetching offset {start} of query [{query}]")
             res = self.jira.jql(query, start=start, limit=100, expand="renderedFields")
             results.extend(res['issues'])
             count = int(res['maxResults'])
-            logger.info(f"got {count} results")
+            logger.debug(f"got {count} results")
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(json.dumps(res, indent=4))
             start += count

@@ -15,7 +15,7 @@ from generators import Html, Pdf, Excel, GraphViz
 
 #logging.basicConfig(filename='report.log', filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s [%(name)s] %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
 logging.config.fileConfig('logging.conf')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('report')
 
 def read_config(filename: str):
     with open(filename, 'r') as config:
@@ -26,7 +26,7 @@ def read_config(filename: str):
 
 def main():
     logger.info('Tidepool Report Generator v0.1')
-    logger.info('parsing arguments')
+    logger.debug('parsing arguments')
     parser = argparse.ArgumentParser(description='Generate Verification Test Report')
     default_config_file = 'report.yml'
     parser.add_argument('--config', help=f'configuration file (default: {default_config_file})', default=default_config_file)
@@ -39,7 +39,7 @@ def main():
     args = parser.parse_args()
     config = read_config(args.config)
     generated = datetime.today()
-    logger.info('connecting to Jira')
+    logger.debug('connecting to Jira')
     jira = JiraHelper(config['jira'])
     logger.info('generating outputs')
     if args.html:
