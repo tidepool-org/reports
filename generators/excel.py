@@ -211,12 +211,15 @@ class Excel():
 
         logger.info('adding cover sheet')
         self.add_cover_sheet(book)
-        logger.info('adding report sheet by requirements')
-        self.add_report_sheet_by_requirements(book)
-        logger.info('adding report sheet by risks')
-        self.add_report_sheet_by_risks(book)
-        logger.info('adding report sheet by epics')
-        self.add_report_sheet_by_epics(book)
+        if 'requirements' in self.config['sheets']:
+            logger.info('adding report sheet by requirements')
+            self.add_report_sheet_by_requirements(book)
+        if 'risks' in self.config['sheets']:
+            logger.info('adding report sheet by risks')
+            self.add_report_sheet_by_risks(book)
+        if 'epics' in self.config['sheets']:
+            logger.info('adding report sheet by epics')
+            self.add_report_sheet_by_epics(book)
 
         logger.info(f"closing file {output_file}")
         book.close()
@@ -233,9 +236,11 @@ class Excel():
         self.write(cover, 0, 0, f"{self.title} {self.subject}", title_format)
         subtitle_format = book.add_format({'font_name': self.font_name, 'font_size': self.font_size + 4, 'bold': True})
         self.write(cover, 1, 0, f"Generated on {self.generated_date}", subtitle_format)
-        cover.insert_image(2, 0, self.config['images']['splash'], {'object_position': 1, 'x_scale': 0.65, 'y_scale': 0.65})
-        cover.set_row(2, 500)
-        self.set_paper(cover, 2, 1)
+        self.write(cover, 2, 0, props['introduction'])
+        # splash = props['splash']
+        # cover.insert_image(2, 0, splash['image'], {'object_position': 1, 'x_scale': float(splash['x_scale']), 'y_scale': float(splash['y_scale'])})
+        # cover.set_row(2, 200)
+        self.set_paper(cover, 3, 1)
 
     #
     # requirements
@@ -404,8 +409,10 @@ class Excel():
             self.write(report, risk_row, columns['benefit'].column, risk.benefit, end_row=row)
             row += 1
 
+        low_format = book.add_format({'bg_color': 'green'})
         high_format = book.add_format({'bg_color': 'red'})
         self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': 'High', 'format': high_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': 'Low', 'format': low_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
         logger.info(f'found {len(stories)} unique stories')
@@ -480,6 +487,7 @@ class Excel():
         sheet.center_horizontally()
         sheet.fit_to_pages(1, 0)  # 1 page wide and as long as necessary.
         sheet.print_area(0, 0, rows - 1, columns - 1)
+        sheet.set_default_row(hide_unused_rows=True)
 
     def set_header_and_footer(self, sheet: xlsxwriter.worksheet) -> None:
         sheet.set_header(f"""&L&"{self.font_name},Bold"&{self.font_size + 6}{self.title} {self.subject}""" +
