@@ -30,7 +30,27 @@ class JiraHelper():
             password=self.config['api_token'])
         self.queries = self.config['queries']
         self.fields = self.config['fields']
-        logger.debug(f"Jira fields: {json.dumps(self.jira.get_all_fields(), indent=4)}")
+        logger.debug("fetch Jira fields")
+        self.all_fields = self.jira.get_all_fields()
+        logger.debug(f"Jira fields: {json.dumps(self.all_fields, indent=4)}")
+        logger.debug("fetch Jira custom field schemas")
+        self.schemas = {}
+        for key, field_id in self.fields.items():
+            try:
+                custom_key = next(field['key'] for field in self.all_fields if field['id'] == field_id and field['id'] != field['key'])
+                # not exposed in Atlassian Jira python API...
+                url = f"rest/api/2/field/{custom_key}/option"
+                self.schemas[key] = self.jira.get(url)
+            except:
+                pass
+        logger.debug(f"Jira custom field schemas: {json.dumps(self.schemas, indent=4)}")
+
+    def get_weight(self, key, id):
+        logger.debug(f"getting weight for {key}, {id}")
+        for value in self.schemas[key]['values']:
+            if value['id'] == id:
+                return value['properties']['weight']
+        return None
 
     @cached_property
     def requirements(self):

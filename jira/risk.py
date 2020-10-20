@@ -13,13 +13,19 @@ class JiraRisk(JiraIssue):
     def harm(self):
         return self.fields[self.jira.fields['harm']] or ''
 
+    def format_value(self, key):
+        val = self.fields[self.jira.fields[key]]
+        if val:
+            return f"{val['value']} ({self.jira.get_weight(key, val['id'])})"
+        return ''
+
     @property
     def initial_severity(self):
-        return self.rendered_fields[self.jira.fields['initial_severity']] or ''
+        return self.format_value('initial_severity')
 
     @property
     def initial_probability(self):
-        return self.rendered_fields[self.jira.fields['initial_probability']] or ''
+        return self.format_value('initial_probability')
 
     @property
     def initial_risk(self):
@@ -27,11 +33,11 @@ class JiraRisk(JiraIssue):
 
     @property
     def residual_severity(self):
-        return self.rendered_fields[self.jira.fields['residual_severity']] or ''
+        return self.format_value('residual_severity')
 
     @property
     def residual_probability(self):
-        return self.rendered_fields[self.jira.fields['residual_probability']] or ''
+        return self.format_value('residual_probability')
 
     @property
     def residual_risk(self):
