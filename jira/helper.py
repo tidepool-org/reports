@@ -38,14 +38,14 @@ class JiraHelper():
         self.schemas = {}
         for key, field_id in self.fields.items():
             try:
-                custom_key = next(field['key'] for field in self.all_fields if field['id'] == field_id and field['id'] != field['key'])
+                custom_key = next(field['key'] for field in self.all_fields if field['id'] == field_id and field['id'] != field['key'] and field['schema']['type'] != 'string')
                 # not exposed in Atlassian Jira python API...
                 url = f"rest/api/2/field/{custom_key}/option"
                 self.schemas[key] = self.jira.get(url)
             except StopIteration:
                 pass
-            except HTTPError:
-                logger.error(f"failed to fetch custom field schema for {custom_key}")
+            except HTTPError as err:
+                logger.warn(f"failed to fetch custom field schema for {custom_key}, reason {err.response.status_code}")
         logger.debug(f"Jira custom field schemas: {json.dumps(self.schemas, indent=4)}")
 
     def get_weight(self, key, id):
