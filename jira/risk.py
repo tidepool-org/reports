@@ -3,21 +3,15 @@ from .issue import JiraIssue
 class JiraRisk(JiraIssue):
     @property
     def sequence(self):
-        return self.rendered_fields[self.jira.fields['sequence_of_events']] or ''
+        return self.format_value('sequence_of_events')
 
     @property
     def hazard(self):
-        return self.fields[self.jira.fields['hazard_category']] or ''
+        return self.format_value('hazard_category')
 
     @property
     def harm(self):
-        return self.fields[self.jira.fields['harm']] or ''
-
-    def format_value(self, key):
-        val = self.fields[self.jira.fields[key]]
-        if val:
-            return f"{val['value']} ({self.jira.get_weight(key, val['id'])})"
-        return ''
+        return self.format_value('harm')
 
     @property
     def initial_severity(self):
@@ -29,7 +23,7 @@ class JiraRisk(JiraIssue):
 
     @property
     def initial_risk(self):
-        return self.rendered_fields[self.jira.fields['initial_risk']] or ''
+        return self.format_value('initial_risk')
 
     @property
     def residual_severity(self):
@@ -41,12 +35,21 @@ class JiraRisk(JiraIssue):
 
     @property
     def residual_risk(self):
-        return self.rendered_fields[self.jira.fields['residual_risk']] or ''
+        return self.format_value('residual_risk')
 
     @property
     def benefit(self):
-        return self.rendered_fields[self.jira.fields['benefit']] or ''
+        return self.format_value('benefit')
 
     @property
     def stories(self):
         return [ story for story in self.links if story.inwardType == 'is mitigated by' ]
+
+    def format_value(self, key):
+        return self.rendered_fields[self.jira.fields[key]] or ''
+
+    def format_weighted_value(self, key):
+        val = self.fields[self.jira.fields[key]]
+        if val:
+            return f"{val['value']} ({self.jira.get_weight(key, val['id'])})"
+        return ''

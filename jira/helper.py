@@ -31,26 +31,34 @@ class JiraHelper():
             password=self.config['api_token'])
         self.queries = self.config['queries']
         self.fields = self.config['fields']
+
+    @cached_property
+    def all_fields(self):
         logger.info("fetching Jira fields")
-        self.all_fields = self.jira.get_all_fields()
-        logger.debug(f"Jira fields: {json.dumps(self.all_fields, indent=4)}")
+        fields = self.jira.get_all_fields()
+        logger.debug(f"Jira fields: {json.dumps(fields, indent=4)}")
+        return fields
+
+    @cached_property
+    def all_schemas(self):
         logger.info("fetching Jira custom field schemas")
-        self.schemas = {}
+        schemas = {}
         for key, field_id in self.fields.items():
             try:
                 custom_key = next(field['key'] for field in self.all_fields if field['id'] == field_id and field['id'] != field['key'] and field['schema']['type'] != 'string')
                 # not exposed in Atlassian Jira python API...
                 url = f"rest/api/2/field/{custom_key}/option"
-                self.schemas[key] = self.jira.get(url)
+                schemas[key] = self.jira.get(url)
             except StopIteration:
                 pass
             except HTTPError as err:
                 logger.warn(f"failed to fetch custom field schema for {custom_key}, reason {err.response.status_code}")
-        logger.debug(f"Jira custom field schemas: {json.dumps(self.schemas, indent=4)}")
+        logger.debug(f"Jira custom field schemas: {json.dumps(schemas, indent=4)}")
+        return schemas
 
     def get_weight(self, key, id):
         logger.debug(f"getting weight for {key}, {id}")
-        for value in self.schemas[key]['values']:
+        for value in self.all_schemas[key]['values']:
             if value['id'] == id:
                 return value['properties']['weight']
         return None
