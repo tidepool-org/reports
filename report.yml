@@ -60,87 +60,162 @@ pdf:
     report: output/report.pdf
 
 excel:
-  title: Tidepool Loop 1.0
-  subject: Reports for Regulatory Agency
-  author: Tidepool Project
-  manager: Tapani Otala
-  company: Tidepool Project
-  keywords: traceability,hazard,analysis,verification,test,report
-  comments: Created with Python and atlassian-python-api and xlsxwriter
-  paper_size: 5 # US Legal size
-  margins: { left: 0.5, right: 0.5, top: 0.75, bottom: 0.5 }
-  font_name: Helvetica Neue
-  font_size: 10
+  properties:
+    title: 'Tidepool Loop 1.0'
+    subject: 'Reports for Regulatory Agency'
+    author: 'Tidepool Project'
+    manager: 'Tapani Otala'
+    company: 'Tidepool Project'
+    keywords: 'traceability,hazard,analysis,verification,test,report'
+    comments: 'Created with Python and atlassian-python-api and xlsxwriter'
+  window_size: [ 1600, 1200 ]
+  page:
+    paper_size: 5 # US Legal size
+    margins: { left: 0.5, right: 0.5, top: 0.75, bottom: 0.5 }
+    header:
+      left: 'Tidepool Loop 1.0 Reports for Regulatory Agency'
+      center: '{sheet}'
+      right: templates/excel/Tidepool_Logo_Light_Large.png
+    footer:
+      left: 'Generated on {date}'
+      right: 'Page &P of &N'
+  formats:
+    base:
+      font_name: Helvetica Neue
+      font_size: 10
+      bold: false
+      text_wrap: true
+      align: left
+      valign: top
+      border: 1
+    url:
+      font_color: blue
+      underline: 1
+    column_header:
+      font_size: 12
+      bold: true
+      font_color: white
+      bg_color: gray
+    bold:
+      bold: true
+    low_risk:
+      bg_color: green
+    medium_risk:
+      bg_color: yellow
+    high_risk:
+      bg_color: red
+    page_header:
+      font_size: 16
+      bold: true
+    page_footer:
+      font_size: 12
+  labels:
+    passed: ✅ PASSED
+    blocked: ❌ BLOCKED
+  risks: # initial_risk and residual_risk prefix strings
+    low: Green
+    medium: Yellow
+    high: Red
   sheets:
     # sheet names max 31 characters
     cover:
       generator: add_cover_sheet # method name in excel.py
       name: Cover
-      splash:
-        image: templates/excel/Tidepool Loop + Watch + Pod - 002.png
-        x_scale: 0.65
-        y_scale: 0.65
-      introduction: |-
+      width: 120
+      title:
+        position: A1
+        text: 'Tidepool Loop 1.0 Reports for Regulatory Agency'
+        format:
+          font_size: 20
+          bold: true
+      subtitle:
+        position: A2
+        text: 'Generated on {date}'
+        format:
+          font_size: 14
+          bold: true
+      introduction:
+        position: A3
+        text: |-
 
-        This document is intended to show the detail of the Tidepool’s Quality Management System for Tidepool Loop. The document was automatically generated from Tidepool’s quality management system. The source documents are in Jira, our project management system. Information was pulled from these projects:
-        • Tidepool Loop Functional Requirements - TLFR
-        • Tidepool Loop Risks - TLR
-        • Tidepool Loop Work Tickets - LOOP
+          This document is intended to show the detail of the Tidepool’s Quality Management System for Tidepool Loop. The document was automatically generated from Tidepool’s quality management system. The source documents are in Jira, our project management system. Information was pulled from these projects:
+          • Tidepool Loop Functional Requirements - TLFR
+          • Tidepool Loop Risks - TLR
+          • Tidepool Loop Work Tickets - LOOP
 
-        Tabs in this spreadsheet:
-        • Traceability: This spreadsheet tab demonstrates traceability to and from all Tidepool Loop functional requirements. It has columns for each requirement, associated risks, design and development, verification tests, and test status.
-        • For more information on Tidepool Loop’s requirements, please see Section 16 of the main pre-marketing notification document.
-        • Hazard Analysis: This spreadsheet tab demonstrates Tidepool’s Risk and Hazard analysis of Tidepool Loop. Columns are included for each risk, including a summary, the potential harm and hazard category, risk assessment prior to mitigation, details of any mitigation, and risk assessment post-mitigation.
+          Tabs in this spreadsheet:
+          • Traceability: This spreadsheet tab demonstrates traceability to and from all Tidepool Loop functional requirements. It has columns for each requirement, associated risks, design and development, verification tests, and test status.
+            • For more information on Tidepool Loop’s requirements, please see Section 16 of the main pre-marketing notification document.
+          • Hazard Analysis: This spreadsheet tab demonstrates Tidepool’s Risk and Hazard analysis of Tidepool Loop. Columns are included for each risk, including a summary, the potential harm and hazard category, risk assessment prior to mitigation, details of any mitigation, and risk assessment post-mitigation.
         
+      splash:
+        1:
+          image: templates/excel/Tidepool Loop iPhone X - Generic Pump.png
+          position: A4
+          height: 450
+          options:
+            object_position: 3
+            x_offset: 150
+            y_offset: 0
+            x_scale: 0.5
+            y_scale: 0.5
+        2:
+          image: templates/excel/Watch 38mm + Loop Home.png
+          position: A4
+          height: 450
+          options:
+            object_position: 3
+            x_offset: 500
+            y_offset: 150
+            x_scale: 0.5
+            y_scale: 0.5
     requirements:
       generator: add_requirements_sheet # method name in excel.py
-      name: Traceability
+      name: 'Traceability'
       aggregate_risks: true
       columns:
-        - { width: 7,  key: req_id,          label: Req ID }
-        - { width: 10, key: req_key,         label: Req Key }
-        - { width: 50, key: req_summary,     label: Req Feature }
-        - { width: 50, key: req_description, label: Req Description }
-        - { width: 10, key: risk_key,        label: Risk Key }
-        - { width: 50, key: risk_summary,    label: Hazardous Situation }
-        - { width: 10, key: story_key,       label: Story Key }
-        - { width: 50, key: story_summary,   label: Story Summary }
-        - { width: 10, key: test_key,        label: Test Key }
-        - { width: 50, key: test_summary,    label: Test Summary }
-        - { width: 11, key: test_status,     label: Test Status }
+        - { width: 7,  key: req_id,          label: 'Req ID' }
+        - { width: 10, key: req_key,         label: 'Req Key' }
+        - { width: 50, key: req_summary,     label: 'Req Feature' }
+        - { width: 50, key: req_description, label: 'Req Description' }
+        - { width: 10, key: risk_key,        label: 'Risk Key' }
+        - { width: 50, key: risk_summary,    label: 'Hazardous Situation' }
+        - { width: 10, key: story_key,       label: 'Story Key' }
+        - { width: 50, key: story_summary,   label: 'Story Summary' }
+        - { width: 10, key: test_key,        label: 'Test Key' }
+        - { width: 50, key: test_summary,    label: 'Test Summary' }
+        - { width: 11, key: test_status,     label: 'Test Status' }
     risks:
       generator: add_risks_sheet # method name in excel.py
       name: Hazard Analysis
       columns:
-        - { width: 10, key: risk_key,             label: Risk Key }
-        - { width: 50, key: risk_summary,         label: Hazardous Situation }
-        - { width: 30, key: sequence,             label: Sequence of Events }
-        - { width: 25, key: harm,                 label: Harm }
-        - { width: 13, key: hazard,               label: Hazard Category }
-        - { width: 12, key: initial_severity,     label: Initial Severity }
-        - { width: 12, key: initial_probability,  label: Initial Probability }
-        - { width: 11, key: initial_risk,         label: Initial Risk Score }
-        - { width: 10, key: mitigation_key,       label: Mitigation Key }
-        - { width: 50, key: mitigation_summary,   label: Mitigation Summary }
-        - { width: 12, key: residual_severity,    label: Residual Severity }
-        - { width: 12, key: residual_probability, label: Residual Probability }
-        - { width: 11, key: residual_risk,        label: Residual Risk Score }
-        - { width: 10, key: benefit,              label: Benefit-Risk Analysis }
-    epics:
-      generator: add_epics_sheet # method name in excel.py
-      name: All Development Tickets
-      columns:
-        - { width: 10, key: epic_key,      label: Epic Key }
-        - { width: 50, key: epic_sumamry,  label: Epic Summary }
-        - { width: 10, key: story_key,     label: Story Key }
-        - { width: 50, key: story_summary, label: Story Summary }
-        - { width: 10, key: risk_key,      label: Risk Key }
-        - { width: 50, key: risk_summary,  label: Hazardous Situation }
-        - { width: 10, key: test_key,      label: Test Key }
-        - { width: 50, key: test_summary,  label: Test Summary }
-        - { width: 11, key: test_status,   label: Test Status }
-  images:
-    logo: templates/excel/Tidepool_Logo_Light_Large.png
+        - { width: 10, key: risk_key,             label: 'Risk Key' }
+        - { width: 50, key: risk_summary,         label: 'Hazardous Situation' }
+        - { width: 30, key: sequence,             label: 'Sequence of Events' }
+        - { width: 25, key: harm,                 label: 'Harm' }
+        - { width: 13, key: hazard,               label: 'Hazard Category' }
+        - { width: 12, key: initial_severity,     label: 'Initial Severity' }
+        - { width: 12, key: initial_probability,  label: 'Initial Probability' }
+        - { width: 11, key: initial_risk,         label: 'Initial Risk Score' }
+        - { width: 10, key: mitigation_key,       label: 'Mitigation Key' }
+        - { width: 50, key: mitigation_summary,   label: 'Mitigation Summary' }
+        - { width: 12, key: residual_severity,    label: 'Residual Severity' }
+        - { width: 12, key: residual_probability, label: 'Residual Probability' }
+        - { width: 11, key: residual_risk,        label: 'Residual Risk Score' }
+        - { width: 10, key: benefit,              label: 'Benefit outweigh Risks? Y/N' }
+    # epics:
+    #   generator: add_epics_sheet # method name in excel.py
+    #   name: All Development Tickets
+    #   columns:
+    #     - { width: 10, key: epic_key,      label: 'Epic Key' }
+    #     - { width: 50, key: epic_sumamry,  label: 'Epic Summary' }
+    #     - { width: 10, key: story_key,     label: 'Story Key' }
+    #     - { width: 50, key: story_summary, label: 'Story Summary' }
+    #     - { width: 10, key: risk_key,      label: 'Risk Key' }
+    #     - { width: 50, key: risk_summary,  label: 'Hazardous Situation' }
+    #     - { width: 10, key: test_key,      label: 'Test Key' }
+    #     - { width: 50, key: test_summary,  label: 'Test Summary' }
+    #     - { width: 11, key: test_status,   label: 'Test Status' }
   output:
     report: output/report.xlsx
 

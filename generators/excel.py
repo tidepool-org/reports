@@ -3,6 +3,7 @@ from typing import Tuple, List, NamedTuple, Optional
 from functools import cached_property
 import re
 import xlsxwriter
+from xlsxwriter.utility import xl_range, xl_cell_to_rowcol, xl_rowcol_to_cell
 from enum import IntEnum
 from html.parser import HTMLParser
 
@@ -10,12 +11,6 @@ logger = logging.getLogger(__name__)
 
 def log_issue(issue, indent: int = 0):
     logger.debug(f"{indent * '--> '}added {issue.type} {issue.key} {issue.url}")
-
-GREEN_CHECKMARK = '\u2705'
-RED_X = '\u274C'
-
-PASSED = f'{GREEN_CHECKMARK} PASSED '
-BLOCKED = f'{RED_X} BLOCKED '
 
 class BaseSegment():
     def __init__(self):
@@ -72,10 +67,9 @@ class HyperLink(BaseSegment):
         return self.pretty_link
 
 class HtmlToExcel(HTMLParser):
-    def __init__(self, bold_format):
+    def __init__(self):
         super().__init__()
         self.nodes = [ ]
-        self.bold_format = bold_format
 
     def parse(self, text):
         self.reset()
@@ -163,20 +157,32 @@ class Excel():
         return self.config['generated'].astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')
 
     @property
+    def passed(self):
+        return self.config['labels']['passed']
+
+    @property
+    def blocked(self):
+        return self.config['labels']['blocked']
+
+    @property
+    def properties(self):
+        return self.config['properties']
+
+    @property
     def title(self):
-        return self.config['title']
+        return self.properties['title']
 
     @property
     def subject(self):
-        return self.config['subject']
+        return self.properties['subject']
 
     @property
     def font_name(self):
-        return self.config['font_name']
+        return self.config['formats']['base']['font_name']
 
     @property
     def font_size(self):
-        return self.config['font_size']
+        return self.config['formats']['base']['font_size']
 
     def generate(self) -> None:
         output_file = self.config['output']['report']
@@ -186,28 +192,20 @@ class Excel():
         book.set_properties({
             'title':    self.title,
             'subject':  self.subject,
-            'author':   self.config['author'],
-            'manager':  self.config['manager'],
-            'company':  self.config['company'],
-            'keywords': self.config['keywords'],
+            'author':   self.properties['author'],
+            'manager':  self.properties['manager'],
+            'company':  self.properties['company'],
+            'keywords': self.properties['keywords'],
             'created':  self.config['generated'],
-            'comments': self.config['comments'],
+            'comments': self.properties['comments'],
         })
-        book.set_size(1600, 1200)
+        book.set_size(*self.config['window_size'])
 
-        self.common_format_base = {'font_name': self.font_name, 'font_size': self.font_size, 'align': 'left', 'valign': 'top', 'text_wrap': True, 'border': 1}
-        self.common_format = book.add_format(self.common_format_base)
-
-        self.header_format = book.add_format({**self.common_format_base, **{'bold': True, 'font_color': 'white', 'bg_color': 'gray', 'font_size': self.font_size + 2}})
-
-        self.key_format = book.get_default_url_format()
-        self.key_format.set_align('top')
-        self.key_format.set_border(1)
-        self.key_format.set_font_name(self.font_name)
-        self.key_format.set_font_size(self.font_size)
-
-        self.bold_format = book.add_format({**self.common_format_base, **{'bold': True}})
-        self.summary_format = book.add_format(self.common_format_base)
+        self.common_format = self.add_format(book)
+        self.column_header_format = self.add_format(book, self.config['formats']['column_header'])
+        self.key_format = self.add_format(book, self.config['formats']['url'])
+        self.bold_format = self.add_format(book, self.config['formats']['bold'])
+        self.summary_format = self.add_format(book)
 
         for sheet_id, sheet in self.config['sheets'].items():
             generator_method = getattr(self.__class__, sheet['generator'])
@@ -224,15 +222,16 @@ class Excel():
         logger.info(f"adding cover sheet '{props['name']}'")
         cover = book.add_worksheet(props['name'])
 
-        title_format = book.add_format({'font_name': self.font_name, 'font_size': self.font_size + 10, 'bold': True})
-        cover.set_column(0, 0, 120)
-        self.write(cover, 0, 0, f"{self.title} {self.subject}", title_format)
-        subtitle_format = book.add_format({'font_name': self.font_name, 'font_size': self.font_size + 4, 'bold': True})
-        self.write(cover, 1, 0, f"Generated on {self.generated_date}", subtitle_format)
-        self.write(cover, 2, 0, props['introduction'])
-        # splash = props['splash']
-        # cover.insert_image(2, 0, splash['image'], {'object_position': 1, 'x_scale': float(splash['x_scale']), 'y_scale': float(splash['y_scale'])})
-        # cover.set_row(2, 200)
+        title = props['title']
+        cover.set_column(xl_cell_to_rowcol(title['position'])[1], xl_cell_to_rowcol(title['position'])[1], props['width'])
+        cover.write(title['position'], self.format_text(cover, title['text']), self.add_format(book, title.get('format', {})))
+        subtitle = props['subtitle']
+        cover.write(subtitle['position'], self.format_text(cover, subtitle['text']), self.add_format(book, subtitle.get('format', {})))
+        intro = props['introduction']
+        cover.write(intro['position'], self.format_text(cover, intro['text']), self.add_format(book, intro.get('format', {})))
+        for i, splash in props['splash'].items():
+            cover.insert_image(splash['position'], splash['image'], splash['options'])
+            cover.set_row(xl_cell_to_rowcol(splash['position'])[0], splash['height'])
         self.set_paper(cover, 3, 1)
 
     #
@@ -245,10 +244,10 @@ class Excel():
         columns = Columns(props['columns'])
         self.set_headings(report, columns)
 
-        req_format = book.add_format(self.common_format_base)
+        req_format = self.add_format(book)
 
         reqs = self.jira.requirements
-        logger.info(f'found {len(reqs)} requirements')
+        logger.info(f'listing {len(reqs)} requirements')
         stories = set()
         # requirements, sorted by requirement ID
         row = 1
@@ -295,7 +294,7 @@ class Excel():
             self.write_html(report, req_row, columns['req_description'].column, req.description, end_row = row)
             row += 1
 
-        report.ignore_errors({ 'number_stored_as_text': f'{self.range_address(0, 0, row - 1, columns.last)}' })
+        report.ignore_errors({ 'number_stored_as_text': xl_range(0, 0, row - 1, columns.last) })
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
         logger.info(f'found {len(stories)} unique stories')
@@ -312,7 +311,7 @@ class Excel():
         self.set_headings(report, columns)
 
         epics = self.jira.epics
-        logger.info(f'found {len(epics)} epics')
+        logger.info(f'listing {len(epics)} epics')
         stories = set()
         # epics, sorted by key
         row = 1
@@ -344,9 +343,9 @@ class Excel():
                 if story.raw_test_strategy:
                     self.write(report, test_row, columns['test_key'].column, self.prettify_links(story.raw_test_strategy), self.summary_format, end_col = columns['test_summary'].column)
                     if story.is_done:
-                        self.write(report, test_row, columns['test_status'].column, PASSED, self.bold_format)
+                        self.write(report, test_row, columns['test_status'].column, self.passed, self.bold_format)
                     elif story.is_blocked:
-                        self.write(report, test_row, columns['test_status'].column, BLOCKED, self.bold_format)
+                        self.write(report, test_row, columns['test_status'].column, self.blocked, self.bold_format)
                     test_row += 1
 
                 # merge story row to span all risks and tests
@@ -375,7 +374,7 @@ class Excel():
         self.set_headings(report, columns)
 
         risks = self.jira.risks
-        logger.info(f'found {len(risks)} risks')
+        logger.info(f'listing {len(risks)} risks')
         stories = set()
         # risks, sorted by harm
         row = 1
@@ -393,7 +392,7 @@ class Excel():
 
             row = max(risk_row + 1, story_row) - 1
             self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk, end_row=row)
-            self.write(report, risk_row, columns['sequence'].column, risk.sequence, end_row=row)
+            self.write_html(report, risk_row, columns['sequence'].column, risk.sequence, end_row=row)
             self.write(report, risk_row, columns['harm'].column, risk.harm, end_row=row)
             self.write(report, risk_row, columns['hazard'].column, risk.hazard, end_row=row)
             self.write(report, risk_row, columns['initial_severity'].column, risk.initial_severity, end_row=row)
@@ -405,10 +404,12 @@ class Excel():
             self.write(report, risk_row, columns['benefit'].column, risk.benefit, end_row=row)
             row += 1
 
-        low_format = book.add_format({'bg_color': 'green'})
-        high_format = book.add_format({'bg_color': 'red'})
-        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': 'High', 'format': high_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
-        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': 'Low', 'format': low_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        low_format = self.add_format(book, self.config['formats']['low_risk'])
+        medium_format = self.add_format(book, self.config['formats']['medium_risk'])
+        high_format = self.add_format(book, self.config['formats']['high_risk'])
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['low'], 'format': low_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['medium'], 'format': medium_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['high'], 'format': high_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
         logger.info(f'found {len(stories)} unique stories')
@@ -421,20 +422,18 @@ class Excel():
     def prettify_links(text):
         return re.sub(r"""\[.+\|(https?:[^\]\|]+)(?:\|[^\]]+)?\]""", r"""\1""", text)
 
-    @staticmethod
-    def cell_address(row: int, col: int) -> str:
-        return f"{chr(ord('A') + col)}{row + 1}"
-
-    @staticmethod
-    def range_address(start_row: int, start_col: int, end_row: int, end_col: int) -> str:
-        return f"{Excel.cell_address(start_row, start_col)}:{Excel.cell_address(end_row, end_col)}"
+    def add_format(self, book: xlsxwriter.Workbook, *formats: List[dict]):
+        format = {**self.config['formats']['base']}
+        for fmt in formats:
+            format.update(fmt)
+        return book.add_format(format)
 
     def set_headings(self, sheet: xlsxwriter.worksheet, columns: Columns):
         sheet.freeze_panes(columns.row + 1, 0) # freeze header row
         sheet.repeat_rows(columns.row)
         for col in columns.ordered:
             sheet.set_column(col.column, col.column, col.width, self.common_format)
-            sheet.write(col.row, col.column, col.label, self.header_format)
+            sheet.write(col.row, col.column, col.label, self.column_header_format)
 
     def set_conditional_format(self, sheet: xlsxwriter.worksheet, format: dict, rows: Tuple[int, int], columns: List[Column]) -> None:
         if rows[1] - rows[0] > 0:
@@ -464,30 +463,48 @@ class Excel():
         sheet.write_url(row, col, issue.url, self.key_format, issue.key, issue.url)
 
     def write_html(self, sheet: xlsxwriter.worksheet, row: int, col: int, value, end_row: int = None, end_col: int = None) -> None:
-        html = HtmlToExcel(self.bold_format).parse(value)
+        html = HtmlToExcel().parse(value)
         self.write(sheet, row, col, html.rendered, self.summary_format, end_row, end_col)
 
     def write_status(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None) -> None:
         if issue.is_done:
-            self.write(sheet, row, col, PASSED, self.bold_format, end_row)
+            self.write(sheet, row, col, self.passed, self.bold_format, end_row)
         elif issue.is_blocked:
-            self.write(sheet, row, col, BLOCKED, self.bold_format, end_row)
+            self.write(sheet, row, col, self.blocked, self.bold_format, end_row)
 
     def write_id(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None, end_col: int = None) -> None:
         self.write(sheet, row, col, str(issue.id), self.summary_format, end_row, end_col)
 
     def set_paper(self, sheet: xlsxwriter.worksheet, rows: int, columns: int) -> None:
-        sheet.set_paper(self.config['paper_size'])
+        sheet.set_paper(self.config['page']['paper_size'])
         sheet.set_landscape()
-        sheet.set_margins(left=self.config['margins']['left'], right=self.config['margins']['right'], top=self.config['margins']['top'], bottom=self.config['margins']['bottom'])
+        margins = self.config['page']['margins']
+        sheet.set_margins(left=margins['left'], right=margins['right'], top=margins['top'], bottom=margins['bottom'])
         sheet.center_horizontally()
         sheet.fit_to_pages(1, 0)  # 1 page wide and as long as necessary.
         sheet.print_area(0, 0, rows - 1, columns - 1)
-        sheet.set_default_row(hide_unused_rows=True)
+        # sheet.set_default_row(hide_unused_rows=True)
+
+    def format_text(self, sheet: xlsxwriter.worksheet, text: str) -> str:
+        if text:
+            return text.format(date=self.generated_date, sheet=sheet.name)
+        return ''
+
+    def header_font(self, format: str) -> str:
+        format = {**self.config['formats']['base'], **self.config['formats'][format]}
+        font_name = f"{format['font_name']},{'Bold' if format['bold'] else 'Regular'}"
+        font_size = format['font_size']
+        return f'&"{font_name}"&{font_size}'
 
     def set_header_and_footer(self, sheet: xlsxwriter.worksheet) -> None:
-        sheet.set_header(f"""&L&"{self.font_name},Bold"&{self.font_size + 6}{self.title} {self.subject}""" +
-                         f"""&C&"{self.font_name},Bold"&{self.font_size + 6}{sheet.name}"""
-                         f"""&R&[Picture]""", {'image_right': self.config['images']['logo']})
-        sheet.set_footer(f"""&L&"{self.font_name},Regular"&{self.font_size + 2}Generated on {self.generated_date}""" +
-                         f"""&RPage &P of &N""")
+        font = self.header_font('page_header')
+        parts = self.config['page']['header']
+        sheet.set_header(f"""&L{font}{self.format_text(sheet, parts.get('left'))}""" +
+                         f"""&C{font}{self.format_text(sheet, parts.get('center'))}""" +
+                         f"""&R&[Picture]""", {'image_right': parts.get('right')})
+
+        font = self.header_font('page_footer')
+        parts = self.config['page']['footer']
+        sheet.set_footer(f"""&L{font}{self.format_text(sheet, parts.get('left'))}""" +
+                         f"""&C{font}{self.format_text(sheet, parts.get('center'))}""" +
+                         f"""&R{font}{self.format_text(sheet, parts.get('right'))}""")
