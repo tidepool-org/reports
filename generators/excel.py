@@ -222,17 +222,19 @@ class Excel():
         logger.info(f"adding cover sheet '{props['name']}'")
         cover = book.add_worksheet(props['name'])
 
-        title = props['title']
-        cover.set_column(xl_cell_to_rowcol(title['position'])[1], xl_cell_to_rowcol(title['position'])[1], props['width'])
-        cover.write(title['position'], self.format_text(cover, title['text']), self.add_format(book, title.get('format', {})))
-        subtitle = props['subtitle']
-        cover.write(subtitle['position'], self.format_text(cover, subtitle['text']), self.add_format(book, subtitle.get('format', {})))
-        intro = props['introduction']
-        cover.write(intro['position'], self.format_text(cover, intro['text']), self.add_format(book, intro.get('format', {})))
-        for i, splash in props['splash'].items():
-            cover.insert_image(splash['position'], splash['image'], splash['options'])
-            cover.set_row(xl_cell_to_rowcol(splash['position'])[0], splash['height'])
-        self.set_paper(cover, 3, 1)
+        col = 0
+        row = 0
+        for i, item in props['items'].items():
+            (this_row, this_col) = xl_cell_to_rowcol(item['position'])
+            col = max(col, this_col)
+            row = max(row, this_row)
+            if item.get('text'):
+                cover.write(item['position'], self.format_text(cover, item['text']), self.add_format(book, item.get('format', {})))
+            elif item.get('image'):
+                cover.insert_image(item['position'], item['image'], item['options'])
+                cover.set_row(this_row, item['height'])
+        cover.set_column(0, 0, props['width'])
+        self.set_paper(cover, row + 1, col + 1)
 
     #
     # requirements
