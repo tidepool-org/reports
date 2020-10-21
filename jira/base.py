@@ -2,6 +2,12 @@ class JiraBase:
     def __init__(self, jira):
         self.jira = jira
 
+    def __eq__(self, other):
+        return self.key == other.key
+
+    def __hash__(self):
+        return hash(self.key)
+
     @property
     def key(self):
         return self.issue['key']
