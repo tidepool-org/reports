@@ -8,7 +8,14 @@ class JiraIssue(JiraBase):
 
     @property
     def type(self):
-        return self.fields['issuetype']['name']
+        return self.fields['issuetype']['name'] or ''
+
+    @property
+    def resolution(self):
+        res = self.fields['resolution']
+        if res:
+            return res['name'] or ''
+        return ''
 
     @property
     def summary(self):
@@ -28,11 +35,11 @@ class JiraIssue(JiraBase):
 
     @property
     def fields(self):
-        return self.issue['fields']
+        return self.issue['fields'] or {}
 
     @property
     def rendered_fields(self):
-        return self.issue['renderedFields']
+        return self.issue.get('renderedFields') or {}
 
     @property
     def links(self):

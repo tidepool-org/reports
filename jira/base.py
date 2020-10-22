@@ -9,6 +9,10 @@ class JiraBase:
         return hash(self.key)
 
     @property
+    def type(self):
+        pass
+
+    @property
     def key(self):
         return self.issue['key']
 
@@ -41,9 +45,13 @@ class JiraBase:
         return self.type == 'Risk Mitigation'
 
     @property
+    def is_junk(self):
+        return self.resolution in [ 'Duplicate', "Won't Do" ]
+
+    @property
     def is_done(self):
-        return self.status_category == 'Done' and self.status in [ 'Waiting for Approval', 'Waiting for Deployment', 'Closed' ]
+        return self.status in [ 'Waiting for Approval', 'Waiting for Deployment', 'Closed' ]
 
     @property
     def is_blocked(self):
-        return self.status == 'Blocked'
+        return self.status in [ 'Blocked' ]

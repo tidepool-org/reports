@@ -3,11 +3,12 @@ jira:
   # base_url: https://tidepool.atlassian.net
   # username: travis-ci@tidepool.org
   # api_token: ...
+  fix_version: FDA 510(k) Sub
   queries:
     requirements: project = TLFR AND issuetype = "Functional Requirement" AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY issuekey ASC
     risks: project = TLR AND issuetype IN (Story, Task) AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY issuekey ASC
-    epics: project = LOOP AND fixVersion = "FDA 510(k) Sub" AND issuetype = "Epic" AND (resolution is EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component is EMPTY) ORDER BY issuekey ASC
-    stories: project = LOOP AND fixVersion = "FDA 510(k) Sub" AND issuetype IN (Story, Bug, Task, Sub-task) AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND "Epic Link" NOT IN (LOOP-496, LOOP-1501) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY "Epic Link" ASC, issuekey ASC
+    epics: project = LOOP AND fixVersion IN ({fix_version}) AND issuetype = "Epic" AND (resolution is EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component is EMPTY) ORDER BY issuekey ASC
+    stories: project = LOOP AND fixVersion IN ({fix_version}) AND issuetype IN (Story, Bug, Task, Sub-task) AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND "Epic Link" NOT IN (LOOP-496, LOOP-1501) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY "Epic Link" ASC, issuekey ASC
     tests: project = LOOP AND issuetype IN ("Test") ORDER BY issuekey ASC
     testruns: project = LOOP AND issuetype IN ("Test Execution") ORDER BY issuekey ASC
   fields:
@@ -27,36 +28,45 @@ jira:
     residual_risk: customfield_10102
     benefit: customfield_10142
 
+zip:
+  output: output/report.zip
+
 html:
   title: Tidepool Loop 1.0
-  subject: Verification Test Report
+  subject: Traceability and Hazard Analysis
   author: Tidepool Project
   manager: Tapani Otala
   company: Tidepool Project
   keywords: verification,test,report
   comments: Created with Python and atlassian-python-api and xlsxwriter
+  aggregate_risks: true
   images:
-    splash: templates/images/Tidepool Loop + Watch + Pod - 002.png
-    logo: templates/images/Tidepool_Logo_Light_Large.png
+    splash1: templates/html/Tidepool Loop iPhone X - Generic Pump.png
+    splash2: templates/html/Watch 38mm + Loop Home.png
+    logo: templates/html/Tidepool_Logo_Light_Large.png
   templates:
-    cover: templates/html/cover.html
-    header: templates/html/header.html
     report: templates/html/report.html
     style: templates/html/report.css
   output:
-    splash: output/Tidepool Loop + Watch + Pod - 002.png
+    splash1: output/Tidepool Loop iPhone X - Generic Pump.png
+    splash2: output/Watch 38mm + Loop Home.png
     logo: output/Tidepool_Logo_Light_Large.png
-    cover: output/cover.html
-    header: output/header.html
     report: output/report.html
     style: output/report.css
+  sections:
+    requirements: true
+    risks: true
 
 pdf:
   input:
-    cover: output/cover.html
-    header: output/header.html
+    cover: templates/pdf/cover.html
+    cover_style: templates/pdf/cover.css
+    header: templates/pdf/header.html
+    style: templates/pdf/print.css
     report: output/report.html
   output:
+    cover: output/cover.html
+    header: output/header.html
     report: output/report.pdf
 
 excel:

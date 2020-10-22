@@ -6,6 +6,7 @@ import logging
 import logging.config
 import argparse
 import yaml
+from zipfile import ZipFile, ZIP_DEFLATED
 from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
@@ -35,6 +36,7 @@ def main():
     parser.add_argument('--pdf', action='store_true', help='generate PDF output from HTML')
     parser.add_argument('--excel', action='store_true', help='generate XLSX output')
     parser.add_argument('--graph', action='store_true', help='generate graph output')
+    parser.add_argument('--zip', action='store_true', help='combine output files into a ZIP file')
 
     args = parser.parse_args()
     config = read_config(args.config)
@@ -42,19 +44,32 @@ def main():
     logger.debug('connecting to Jira')
     jira = JiraHelper(config['jira'])
     logger.info('generating outputs')
+    files = [ ]
+
     if args.html:
         config['html']['generated'] = generated
-        Html(jira, config['html']).generate()
+        files.extend(Html(jira, config['html']).generate())
+
     if args.excel:
         config['excel']['generated'] = generated
-        Excel(jira, config['excel']).generate()
+        files.extend(Excel(jira, config['excel']).generate())
+
     if args.graph:
         config['graphviz']['generated'] = generated
-        GraphViz(jira, config['graphviz']).generate()
+        files.extend(GraphViz(jira, config['graphviz']).generate())
+
     if args.pdf:
         config['pdf']['generated'] = generated
-        Pdf(jira, config['pdf']).generate()
-    logger.info('done')
+        files.extend(Pdf(jira, config['pdf']).generate())
+
+    if args.zip:
+        logger.info(f"generating ZIP file {config['zip']['output']} from {files}")
+        with ZipFile(config['zip']['output'], mode='w', compression=ZIP_DEFLATED) as zip:
+            for file in files:
+                zip.write(file, arcname=os.path.basename(file))
+
+    logger.debug(f"missed {len(jira.missed)}: {jira.missed.keys()}")
+    logger.info(f"done, elapsed time {datetime.today() - generated}")
 
 if __name__ == '__main__':
     main()

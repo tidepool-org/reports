@@ -148,7 +148,7 @@ class Columns(dict):
         return [ column for key, column in self.items() if isinstance(key, str) and column.key in names ]
 
 class Excel():
-    def __init__(self, jira, config):
+    def __init__(self, jira, config: dict):
         self.jira = jira
         self.config = config
 
@@ -184,7 +184,7 @@ class Excel():
     def font_size(self):
         return self.config['formats']['base']['font_size']
 
-    def generate(self) -> None:
+    def generate(self) -> List[str]:
         output_file = self.config['output']['report']
         logger.info(f"generating {output_file}")
 
@@ -213,6 +213,7 @@ class Excel():
 
         logger.info(f"closing file {output_file}")
         book.close()
+        return [ self.config['output']['report'] ]
 
     #
     # cover
@@ -257,18 +258,11 @@ class Excel():
             log_issue(req)
             req_row = row
 
-            # directly linked risks
-            risks = set(req.risks)
-
             # stories, sorted by issue key
             story_row = req_row
             for story in self.jira.sorted_by_key(req.stories):
                 log_issue(story, 1)
                 stories.add(story.key)
-
-                # add to aggregate risks
-                if props['aggregate_risks']:
-                    risks.update(self.jira.get_issue(story.key).risks)
 
                 # tests, sorted by issue key
                 test_row = story_row
@@ -285,7 +279,7 @@ class Excel():
 
             # risks, sorted by issue key
             risk_row = req_row
-            for risk in self.jira.sorted_by_key(risks):
+            for risk in self.jira.sorted_by_key(req.risks):
                 log_issue(risk, 1)
                 self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk)
                 risk_row += 1

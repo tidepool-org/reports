@@ -1,9 +1,3 @@
-body.report {
-    margin: 0.5in;
-    font-family: 'Helvetica Neue';
-    font-size: 10pt;
-}
-
 @media print {
     body.report {
         margin: 0in;
@@ -16,16 +10,6 @@ body.report {
     }
 }
 
-h2 {
-    page-break-before: always !important;
-}
-table {
-    overflow: visible !important;
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
-    border-spacing: 0;
-}
 thead {
     display: table-header-group;
 }
@@ -35,75 +19,50 @@ tbody {
 tfoot {
     display: table-row-group;
 }
-tr {
-    vertical-align: top;
-    page-break-inside: avoid !important;
-}
-tr:nth-child(even) {
-    background-color: whitesmoke;
-}
-tr:nth-child(odd) {
-    background-color: white;
-}
-th {
-    color: black !important;
-    background-color: silver !important;
-    text-align: left;
-    border: 1px solid grey;
-    padding: 0.1in;
-}
-td {
-    border: 1px solid grey;
-    padding: 0.1in;
-}
 
 .key_icon {
+    display: none; /* hide icon */
     height: 1em;
-    display: none;
 }
-/* left_margin + key + summary + requirements + tests + risks + right_margin <= 14in */
 .key {
-    width: 0.8in;
+    width: 9ch;
     white-space: nowrap;
 }
 .summary {
-    width: 3in;
-}
-.requirements {
-    width: 3in;
 }
 .tests {
-    width: 3in;
 }
 .tests .summary {
-    width: 2.2in;
 }
 .tests .status {
-    display: none; /* hidden */
-    width: 0.9in;
+    width: 8ch;
     white-space: nowrap;
 }
 .risks {
-    width: 3in;
 }
 .risks .summary {
-    width: 2.2in;
+}
+.risks .status {
+    width: 38ch;
+    white-space: nowrap;
+}
+.risks .score {
+    width: 11ch;
+    white-space: nowrap;
 }
 
-.blocked {
-    background-color: orange !important;
+.panel h3 {
+    margin: 0.75em;
 }
 
-body.header {
-    width: 14in;
+.logo {
+    max-height: 50px;
 }
 
-div.header {
-    width: 100%;
-    display: table-cell;
-    vertical-align: middle;
-    text-align: right;
+.splash1 {
+    max-height: 200px;
 }
-img.logo {
-    max-width: 2in;
+
+.splash2 {
+    max-height: 200px;
 }

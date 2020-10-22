@@ -46,10 +46,20 @@ class JiraRisk(JiraIssue):
         return [ story for story in self.links if story.inwardType == 'is mitigated by' ]
 
     def format_value(self, key):
-        return self.rendered_fields[self.jira.fields[key]] or ''
+        return self.rendered_fields.get(self.jira.fields[key]) or ''
 
     def format_weighted_value(self, key):
-        val = self.fields[self.jira.fields[key]]
+        val = self.fields.get(self.jira.fields[key])
         if val:
             return f"{val['value']} ({self.jira.get_weight(key, val['id'])})"
+        return ''
+
+    def color(self, score: str) -> str:
+        score = (score or '').lower()
+        if 'green' in score:
+            return 'green'
+        elif 'yellow' in score:
+            return 'yellow'
+        elif 'red' in score:
+            return 'red'
         return ''

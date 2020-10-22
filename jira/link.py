@@ -1,3 +1,4 @@
+from functools import cached_property # import functools
 from .base import JiraBase
 
 class JiraLink(JiraBase):
@@ -49,9 +50,33 @@ class JiraLink(JiraBase):
     def outwardType(self):
         return self.link['type']['outward']
 
-    @property
+    @cached_property
     def full_issue(self):
-        return self.jira.all_issues[self.key]
+        if self.outwardType in [ 'is mitigated by', 'defines', 'created' ]:
+            return self.jira.get_issue(self.key, 'JiraIssue')
+        elif self.outwardType in [ 'mitigates', 'verifies' ]:
+            return self.jira.get_issue(self.key, 'JiraRisk')
+        elif self.outwardType in [ 'is defined by' ]:
+            return self.jira.get_issue(self.key, 'JiraRequirement')
+        elif self.outwardType in [ 'is tested by' ]:
+            return self.jira.get_issue(self.key, 'JiraTest')
+        return self.jira.get_issue(self.key, 'JiraIssue')
+
+    @property
+    def status(self):
+        return self.full_issue.status
+
+    @property
+    def status_category(self):
+        return self.full_issue.status_category
+
+    @property
+    def resolution(self):
+        return self.full_issue.resolution
+
+    @property
+    def harm(self):
+        return self.full_issue.harm
 
     @property
     def tests(self):

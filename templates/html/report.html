@@ -4,104 +4,254 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
     <title>{{ config['title'] }} {{ config['subject'] }}</title>
-    <link rel="stylesheet" href="{{ basename(config['output']['style']) }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    <style>
+        {%- include basename(config['output']['style']) -%}
+    </style>
 </head>
-<body class="report">
-    {% macro issue_key(issue) -%}
-        <span class="text-nowrap"><img class="key_icon" src="{{ issue.icon }}"/><a href="{{ issue.url }}">{{ issue.key }}</a></span>
-    {%- endmacro %}
-    {% macro passed() -%}
-        <strong class="text-nowrap">PASS &#x2705;</strong>
-    {%- endmacro %}
-    {% macro blocked() -%}
-        <strong class="text-nowrap">BLOCKED &#x274C;</strong>
-    {%- endmacro %}
+<body>
+    <div class="container">
+        {%- macro issue_key(issue) -%}
+            <span class="text-nowrap"><img class="key_icon" src="{{ issue.icon }}"/><a href="{{ issue.url }}">{{ issue.key }}</a></span>
+        {%- endmacro -%}
 
-    <h1>Summary</h1>
-    <p>{{ jira.epics.values()|count }} epics</p>
-    <p>{{ jira.stories.values()|count }} stories</p>
+        {%- macro passed() -%}
+            <span class="label label-success text-nowrap">&#x2705; PASSED</span>
+        {%- endmacro -%}
 
-    <h1>Stories Grouped by Epics</h1>
-    {% for epic in jira.epics.values()|keysort %}
-        {% if epic.stories %}
-            <h2>{{ issue_key(epic) }}: {{ epic.summary }}</h2>
-            <p>{{ epic.description|prettify_links|safe }}</p>
-            <table class="table table-bordered table-condensed table-striped issues">
-                <thead>
-                    <tr>
-                        <th class="key">Issue</th>
-                        <th class="summary">Summary</th>
-                        <th class="requirements">Functional Requirements</th>
-                        <th class="risks">Mitigated Risks</th>
-                        <th class="tests">Verification Tests</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for story in epic.stories|keysort %}
-                    {% if story.status != 'Blocked' -%}
-                    <tr>
-                    {% else %}
-                    <tr class="blocked">
-                    {% endif %}
-                        <td class="key">{{ issue_key(story) }}</td>
-                        <td class="summary">{{ story.summary }}</td>
-                        <td class="requirements">
-                            {% if story.requirements %}
-                                {{ story.requirements|prettify_links|truncate(100)|safe }}
-                            {% else %}
-                                {{ story.done_criteria|prettify_links|truncate(100)|safe }}
-                            {% endif %}
-                        </td>
-                        <td class="risks">
-                            {% if story.risks %}
-                            <table class="table table-bordered table-condensed table-striped">
-                                <tbody>
-                                    {% for risk in story.risks|keysort %}
-                                    <tr>
-                                        <td class="key">{{ issue_key(risk) }}</td>
-                                        <td class="summary">{{ risk.summary }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                            {% endif %}
-                        </td>
-                        <td class="tests">
-                            {% if story.tests %}
-                            <table class="table table-bordered table-condensed table-striped">
-                                <tbody>
-                                    {% for test in story.tests|keysort %}
-                                    <tr>
-                                        <td class="key">{{ issue_key(test) }}</td>
-                                        <td class="summary">{{ test.summary }}</td>
-                                        <td class="status">
-                                            {% if test.status_category == 'Done' %}
-                                                {{ passed() }}
-                                            {% else %}
-                                                {{ test.status_category }}
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                            {% endif %}
-                            {% if story.test_strategy %}
-                                {% if story.status_category == 'Done' %}
-                                    {{ passed() }}
-                                {% elif story.status == 'Blocked' %}
-                                    {{ blocked() }}
-                                {% endif %}
-                                {{ story.test_strategy|prettify_links|truncate(100)|safe }}
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-                <tfoot>
-                </tfoot>
-            </table>
-        {% endif %}
-    {% endfor %}
+        {%- macro blocked() -%}
+            <span class="label label-warning text-nowrap">&#x274C; BLOCKED</span>
+        {%- endmacro -%}
+
+        {%- macro risk_color(score) -%}
+            {%- if score == "green" -%}
+                bg-success
+            {%- elif score == "yellow" -%}
+                bg-warning
+            {%- elif score == "red" -%}
+                bg-danger
+            {%- endif -%}
+        {%- endmacro -%}
+
+        {%- macro list_stories(stories) -%}
+            <h3>Development Work Tickets</h3>
+            {%- if stories -%}
+                <table class="table table-bordered table-condensed table-striped table-responsive stories">
+                    <thead>
+                        <tr>
+                            <th class="key">Key</th>
+                            <th class="summary">Summary</th>
+                            <th class="tests">Verification Tests</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {%- for story in stories|sort_by_key -%}
+                        <tr>
+                            <td class="key">{{ issue_key(story) }}</td>
+                            <td class="summary">{{ story.summary }}</td>
+                            <td class="tests">
+                                {%- set tests = story.tests|exclude_junk -%}
+                                {%- if tests -%}
+                                <table class="table table-bordered table-condensed table-striped table-responsive tests">
+                                    <thead>
+                                        <tr>
+                                            <th class="key">Key</th>
+                                            <th class="summary">Summary</th>
+                                            <th class="Status">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {%- for test in tests|sort_by_key -%}
+                                        <tr>
+                                            <td class="key">{{ issue_key(test) }}</td>
+                                            <td class="summary">{{ test.summary }}</td>
+                                            <td class="status">
+                                                {%- if test.status_category == 'Done' -%}
+                                                    {{ passed() }}
+                                                {%- else -%}
+                                                    {{ test.status_category }}
+                                                {%- endif -%}
+                                            </td>
+                                        </tr>
+                                        {%- endfor -%}
+                                    </tbody>
+                                </table>
+                                {%- endif -%}
+                                {%- if story.raw_test_strategy -%}
+                                    {%- if story.status_category == 'Done' -%}
+                                        {{ passed() }}
+                                    {%- elif story.status == 'Blocked' -%}
+                                        {{ blocked() }}
+                                    {%- endif -%}
+                                    {{ story.raw_test_strategy|prettify_links|truncate(100)|safe }}
+                                {%- endif -%}
+                            </td>
+                        </tr>
+                        {%- endfor -%}
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+            {%- else -%}
+                <span class="label label-warning">No stories associated with this requirement</span>
+            {%- endif -%}
+        {%- endmacro -%}
+
+        {%- macro list_risks(risks) -%}
+            <h3>Risks</h3>
+            {%- if risks -%}
+                <table class="table table-bordered table-condensed table-striped table-responsive risks">
+                    <thead>
+                        <tr>
+                            <th class="key">Key</th>
+                            <th class="summary">Hazardous Situation</th>
+                            <th class="status">Status</th>
+                            <th class="score">Residual Risk Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {%- for risk in risks|sort_by_harm -%}
+                        <tr>
+                            <td class="key">{{ issue_key(risk) }}</td>
+                            <td class="summary">{{ risk.summary }}</td>
+                            {%- set full_risk = jira.get_issue(risk.key, 'JiraRisk') -%}
+                            <td class="status">{{ full_risk.status }}</td>
+                            <td class="score {{ risk_color(full_risk.color(full_risk.residual_risk)) }}">{{ full_risk.residual_risk }}</td>
+                        </tr>
+                        {%- endfor -%}
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+            {%- else -%}
+                <span class="label label-warning">No risks associated with this requirement</span>
+            {%- endif -%}
+        {%- endmacro -%}
+
+        <div class="jumbotron">
+            <div class="container">
+                <div class="row">
+                    <img class="logo" src="{{ basename(config['output']['logo']) }}"/>
+                </div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <h1>{{ config['title'] }}<h1>
+                        <h2>{{ config['subject'] }}</h2>
+                        <p>Generated on {{ now }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <img class="splash1" src="{{ basename(config['output']['splash1']) }}"/>
+                        <img class="splash2" src="{{ basename(config['output']['splash2']) }}"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="well">
+            <p>This document is intended to show the detail of the Tidepool’s Quality Management System for Tidepool Loop.
+                The document was automatically generated from Tidepool’s quality management system.
+                The source documents are in Jira, our project management system. Information was pulled from these projects:</p>
+            <ul>
+                <li>Tidepool Loop Functional Requirements - <a href="https://tidepool.atlassian.net/browse/TLFR">TLFR</a></li>
+                <li>Tidepool Loop Risks - <a href="https://tidepool.atlassian.net/browse/TLR">TLR</a></li>
+                <li>Tidepool Loop Work Tickets - <a href="https://tidepool.atlassian.net/browse/LOOP">LOOP</a></li>
+            </ul>
+
+            <p>Sections in this document:</p>
+            <ul>
+                <li><a href="#traceability">Traceability</a>: This demonstrates traceability to and from all Tidepool Loop functional requirements.
+                    It has columns for each requirement, associated risks, design and development, verification tests, and test status.
+                    For more information on Tidepool Loop’s requirements, please see <a href="https://docs.google.com/document/d/1dYHGKUqc4w-ZTJp8tdRAKPEJzMYBu6YCFlhht0h3364/edit#bookmark=id.i85kgpdna4cv">Section 16 of the main pre-marketing notification document</a>.</li>
+                <li><a href="#hazard_analysis">Hazard Analysis</a>: This demonstrates Tidepool’s Risk and Hazard analysis of Tidepool Loop.
+                    Columns are included for each risk, including a summary, the potential harm and hazard category, risk assessment prior to mitigation, details of any mitigation, and risk assessment post-mitigation.</li>
+            </ul>
+        </div>
+
+        {%- if config['sections']['requirements'] -%}
+        <div>
+            <a name="traceability"></a>
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h1>Traceability</h1>
+                    <small>{{ jira.requirements.values()|exclude_junk|count }} requirements</small>
+                </div>
+            </div>
+
+            {%- for req in jira.requirements.values()|exclude_junk|sort_by_id -%}
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h2>{{ issue_key(req) }} {{ req.id }} {{ req.summary }}</h2>
+                </div>
+                <div class="panel-body">
+                    <p class="req_description">{{ req.description|prettify_links|safe }}</p>
+                </div>
+
+                {{ list_stories(req.stories|exclude_junk) }}
+                {{ list_risks(req.risks|exclude_junk) }}
+            </div>
+            {%- endfor -%}
+        </div>
+        {%- endif -%}
+
+        {%- if config['sections']['risks'] -%}
+        <div>
+            <a name="hazard_analysis"></a>
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h1>Hazard Analysis</h1>
+                    <small>{{ jira.risks.values()|exclude_junk|count }} risks</small>
+                </div>
+            </div>
+
+            {%- for risk in jira.risks.values()|exclude_junk|sort_by_harm -%}
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h2>{{ issue_key(risk) }} {{ risk.summary }}</h2>
+                </div>
+                <div class="panel-body">
+                    <p>{{ risk.sequence|prettify_links|safe }}</p>
+                </div>
+
+                <table class="table table-bordered table-condensed table-striped table-responsive risks">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" class="harm">Harm</th>
+                            <th rowspan="2" class="hazard">Hazard</th>
+                            <th colspan="3" class="text-center">Initial Risk</th>
+                            <th colspan="3" class="text-center">Residual Risk</th>
+                            <th rowspan="2" class="benefit">Benefit outweigh Risks? Y/N</th>
+                        </tr>
+                        <tr>
+                            <th class="severity">Severity</th>
+                            <th class="probability">Probability</th>
+                            <th class="score">Score</th>
+                            <th class="severity">Severity</th>
+                            <th class="probability">Probability</th>
+                            <th class="score">Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="harm">{{ risk.harm }}</td>
+                            <td class="hazard">{{ risk.hazard }}</td>
+                            <td class="severity">{{ risk.initial_severity }}</td>
+                            <td class="probability">{{ risk.initial_probability }}</td>
+                            <td class="score {{ risk_color(risk.color(risk.initial_risk)) }}">{{ risk.initial_risk }}</td>
+                            <td class="severity">{{ risk.residual_severity }}</td>
+                            <td class="probability">{{ risk.residual_probability }}</td>
+                            <td class="score {{ risk_color(risk.color(risk.residual_risk)) }}">{{ risk.residual_risk }}</td>
+                            <td class="benefit">{{ risk.benefit }}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+
+                {{ list_stories(risk.stories|exclude_junk) }}
+            </div>
+            {%- endfor -%}
+        </div>
+        {%- endif -%}
+    </div>
 </body>
 </html>

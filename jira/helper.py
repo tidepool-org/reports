@@ -29,8 +29,14 @@ class JiraHelper():
             url=self.config['base_url'],
             username=self.config['username'],
             password=self.config['api_token'])
+        self.fix_version = self.config['fix_version']
         self.queries = self.config['queries']
         self.fields = self.config['fields']
+        self.missed = { }
+
+    @cached_property
+    def all_issues(self):
+        return { **self.requirements, **self.risks, **self.stories, **self.epics }
 
     @cached_property
     def all_fields(self):
@@ -93,20 +99,8 @@ class JiraHelper():
         logger.info('fetching test runs')
         return self.to_dict(self.jql(self.queries['testruns']), JiraTest)
 
-    @cached_property
-    def all_issues(self):
-        class AllIssues(dict):
-            def __init__(self, jira, *arg, **kw):
-                super().__init__(*arg, **kw)
-                self.jira = jira
-
-            def __missing__(self, key):
-                logger.debug(f'fetching missing issue by key {key}')
-                return self.jira.get_issue(key)
-
-        return AllIssues(self, { **self.requirements, **self.risks, **self.epics, **self.stories }) # **self.tests, **self.testruns
-
     def jql(self, query: str):
+        query = query.format(fix_version=f'"{self.fix_version}"')
         results = [ ]
         start = 0
         while True:
@@ -114,19 +108,39 @@ class JiraHelper():
             res = self.jira.jql(query, start=start, limit=100, expand="renderedFields")
             results.extend(res['issues'])
             count = int(res['maxResults'])
-            logger.debug(f"got {count} results")
+            total = int(res['total'])
+            logger.debug(f"got {count} results out of {total}")
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(json.dumps(res, indent=4))
             start += count
-            if start >= int(res['total']):
+            if start >= total:
                 break
         return results
 
-    def get_issue(self, issuekey):
-        return JiraIssue(self.jira.get_issue(issuekey), self)
+    def __get_issue(self, issue_key, cls=JiraIssue):
+        issue = self.jira.get_issue(issue_key)
+        logger.debug(f'got issue {issue_key} of type {cls}: {json.dumps(issue, indent=4)}')
+        return cls(issue, self)
+
+    def get_issue(self, issue_key, cls=JiraIssue):
+        logger.debug(f"requesting {issue_key} of type {cls}")
+        if isinstance(cls, str):
+            cls = globals()[cls]
+        issue = self.all_issues.get(issue_key)
+        if not issue:
+            issue = self.missed.get(issue_key)
+            if not issue:
+                logger.debug(f"cache miss, fetching {issue_key} of type {cls}")
+                issue = self.__get_issue(issue_key, cls)
+                self.missed[issue_key] = issue
+        return issue
 
     def to_dict(self, issues, issue_type):
         return { issue.key: issue for issue in [ issue_type(issue, self) for issue in issues ] }
+
+    @staticmethod
+    def exclude_junk(issues):
+        return [ issue for issue in issues if not issue.is_junk ]
 
     @staticmethod
     def sorted_by_key(issues):
