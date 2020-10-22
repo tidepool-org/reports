@@ -7,7 +7,7 @@ install:
   #- sudo apt-get install -y graphviz
   - mkdir -p output
 script:
-  - python report.py --excel
+  - python report.py --html --excel --zip
 before_deploy:
   - git config --local user.name "travis-ci-tidepool"
   - git config --local user.email "travis-ci@tidepool.org"
@@ -20,6 +20,7 @@ deploy:
   skip_cleanup: true
   file:
     - $TRAVIS_BUILD_DIR/output/report.xlsx
+    - $TRAVIS_BUILD_DIR/output/report.zip
     - $TRAVIS_BUILD_DIR/output/report.log
   on:
     repo: tidepool-org/reports
