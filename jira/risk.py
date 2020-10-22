@@ -11,7 +11,7 @@ class JiraRisk(JiraIssue):
 
     @property
     def harm(self):
-        return self.format_value('harm')
+        return self.fields.get(self.jira.fields['harm']) or ''
 
     @property
     def initial_severity(self):
