@@ -42,6 +42,7 @@ optional arguments:
   --pdf            generate PDF output from HTML
   --excel          generate XLSX output
   --graph          generate graph output
+  --zip            combine output files into a ZIP file
 ```
 
 ## Development
@@ -70,7 +71,7 @@ report.py
 |  |- *.py
 |- generators    # generators corresponding to each generator CLI flag
 |  |- *.py
-|- templates     # template files (for --html and --pdf)
+|- templates     # template files
    |- *.*
 ```
 
