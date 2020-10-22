@@ -52,7 +52,7 @@ html:
     splash2: output/Watch 38mm + Loop Home.png
     logo: output/Tidepool_Logo_Light_Large.png
     report: output/report.html
-    style: output/report.css
+    #style: output/report.css # don't copy it to output, it'll be embedded in report.html
   sections:
     requirements: true
     risks: true

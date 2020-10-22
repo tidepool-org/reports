@@ -22,6 +22,10 @@ class Html():
             files.append(target_file)
 
         for template_key, source_file in self.config['templates'].items():
+            target_file = self.config['output'].get(template_key)
+            if not target_file:
+                logger.info(f"skipping template {template_key} {source_file}, no target file")
+                continue
             env = jinja2.Environment(
                 loader=jinja2.FileSystemLoader(os.path.dirname(source_file)),
                 autoescape=jinja2.select_autoescape(['html', 'xml']),
@@ -37,7 +41,6 @@ class Html():
             md = markdown.Markdown()
             env.filters['markdown'] = lambda text: jinja2.Markup(md.convert(text))
 
-            target_file = self.config['output'][template_key]
             logger.info(f"generating {target_file} from {source_file}")
             template = env.get_template(os.path.basename(source_file))
             os.makedirs(os.path.dirname(target_file), exist_ok=True)
