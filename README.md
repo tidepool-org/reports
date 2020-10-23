@@ -55,8 +55,8 @@ The tool uses several libraries to do the actual work:
 | [`python-dotenv`](https://github.com/theskumar/python-dotenv) | Support for `.env` files |
 | [`PyYAML`](https://github.com/yaml/pyyaml) | YAML support |
 | [`atlassian-python-api`](https://github.com/atlassian-api/atlassian-python-api) | access Atlassian Jira |
+| [`markdown`](https://github.com/Python-Markdown/markdown) | Convert Markdown to HTML |
 | [`Jinja2`](https://github.com/pallets/jinja) | HTML template engine, only used with `--html` |
-| [`Markdown`](https://github.com/jpsca/jinja-markdown) | Markdown extension to Jinja2, only used with `--html` |
 | [`pdfkit`](https://github.com/JazzCore/python-pdfkit) | PDF renderer, only used with `--pdf`. Depends on `--html` and `wkhtmltopdf` |
 | [`graphviz`](https://github.com/xflr6/graphviz) | GraphViz renderer, only used with `--graph` (experimental) |
 | [`XlsxWriter`](https://github.com/jmcnamara/XlsxWriter) | Excel XLSX renderer, only used with `--excel` |
