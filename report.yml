@@ -3,7 +3,7 @@ jira:
   # base_url: https://tidepool.atlassian.net
   # username: travis-ci@tidepool.org
   # api_token: ...
-  fix_version: FDA 510(k) Sub
+  fix_version: 'FDA 510(k) Sub'
   queries:
     requirements: project = TLFR AND issuetype = "Functional Requirement" AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY issuekey ASC
     risks: project = TLR AND issuetype IN (Story, Task) AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY issuekey ASC

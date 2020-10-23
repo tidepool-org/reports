@@ -1,6 +1,9 @@
+import markdown
+
 class JiraBase:
     def __init__(self, jira):
         self.jira = jira
+        self.markdown = markdown.Markdown()
 
     def __eq__(self, other):
         return self.key == other.key

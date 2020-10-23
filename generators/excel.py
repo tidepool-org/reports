@@ -54,9 +54,8 @@ class HyperLink(BaseSegment):
 
     @property
     def pretty_link(self):
-        if self.text.startswith('https://docs.google'):
-            return 'Google Document'
-        return self.text
+        text = re.sub(r"""https://docs.google.+""", r"Google Document", self.text)
+        return re.sub(r"""https://tidepool.atlassian.net/browse/(.+)""", r"\1", text)
 
     @property
     def is_empty(self):
@@ -336,8 +335,8 @@ class Excel():
                     test_row += 1
 
                 # include test strategy, if filled in (mostly for legacy stories)
-                if story.raw_test_strategy:
-                    self.write(report, test_row, columns['test_key'].column, self.prettify_links(story.raw_test_strategy), self.summary_format, end_col = columns['test_summary'].column)
+                if story.test_strategy:
+                    self.write_html(report, test_row, columns['test_key'].column, story.test_strategy, end_col = columns['test_summary'].column)
                     if story.is_done:
                         self.write(report, test_row, columns['test_status'].column, self.passed, self.bold_format)
                     elif story.is_blocked:
@@ -414,10 +413,6 @@ class Excel():
     # helper methods
     #
 
-    @staticmethod
-    def prettify_links(text):
-        return re.sub(r"""\[.+\|(https?:[^\]\|]+)(?:\|[^\]]+)?\]""", r"""\1""", text)
-
     def add_format(self, book: xlsxwriter.Workbook, *formats: List[dict]):
         format = {**self.config['formats']['base']}
         for fmt in formats:
@@ -450,7 +445,7 @@ class Excel():
 
     def write_key_and_summary(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None, end_col: int = None) -> None:
         self.write_url(sheet, row, col, issue, end_row, end_col)
-        self.write(sheet, row, col + 1, issue.raw_summary, self.summary_format, end_row)
+        self.write_html(sheet, row, col + 1, issue.summary, end_row)
         if issue.is_test:
             self.write_status(sheet, row, col + 2, issue, end_row)
 

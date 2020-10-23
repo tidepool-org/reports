@@ -50,7 +50,7 @@
                             <td class="key">{{ issue_key(story) }}</td>
                             <td class="summary">{{ story.summary }}</td>
                             <td class="tests">
-                                {%- set tests = story.tests|exclude_junk -%}
+                                {%- set tests = story.tests|exclude_junk(True) -%}
                                 {%- if tests -%}
                                 <table class="table table-bordered table-condensed table-striped table-responsive tests">
                                     <thead>
@@ -77,13 +77,13 @@
                                     </tbody>
                                 </table>
                                 {%- endif -%}
-                                {%- if story.raw_test_strategy -%}
+                                {%- if story.test_strategy -%}
                                     {%- if story.status_category == 'Done' -%}
                                         {{ passed() }}
                                     {%- elif story.status == 'Blocked' -%}
                                         {{ blocked() }}
                                     {%- endif -%}
-                                    {{ story.raw_test_strategy|prettify_links|truncate(100)|safe }}
+                                    {{ story.test_strategy|prettify_links|safe }}
                                 {%- endif -%}
                             </td>
                         </tr>
@@ -186,7 +186,7 @@
                     <p class="req_description">{{ req.description|prettify_links|safe }}</p>
                 </div>
 
-                {{ list_stories(req.stories|exclude_junk) }}
+                {{ list_stories(req.stories|exclude_junk(True)) }}
                 {{ list_risks(req.risks|exclude_junk) }}
             </div>
             {%- endfor -%}
@@ -247,7 +247,7 @@
                     </tfoot>
                 </table>
 
-                {{ list_stories(risk.stories|exclude_junk) }}
+                {{ list_stories(risk.stories|exclude_junk(True)) }}
             </div>
             {%- endfor -%}
         </div>

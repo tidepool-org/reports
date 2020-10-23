@@ -1,5 +1,8 @@
+import logging
 from .base import JiraBase
 from .link import JiraLink
+
+logger = logging.getLogger(__name__)
 
 class JiraIssue(JiraBase):
     def __init__(self, issue, jira):
@@ -27,11 +30,15 @@ class JiraIssue(JiraBase):
 
     @property
     def description(self):
-        return self.rendered_fields['description'] or ''
+        return self.rendered_fields['description'] or self.raw_description
 
     @property
     def raw_description(self):
-        return self.fields['description'] or ''
+        return self.markdown.convert(self.fields['description'] or '')
+
+    @property
+    def fix_versions(self):
+        return [ fix_version['name'] for fix_version in self.fields['fixVersions'] ]
 
     @property
     def fields(self):
@@ -47,12 +54,12 @@ class JiraIssue(JiraBase):
 
     @property
     def stories(self):
-        return [ link for link in self.links if link.is_story and link.link_type != 'Risk Mitigation' ]
+        return [ self.jira.get_issue(link.key, 'JiraIssue') for link in self.links if link.is_story and link.link_type != 'Risk Mitigation' ]
 
     @property
     def tests(self):
-        return [ link for link in self.links if link.is_test ]
+        return [ self.jira.get_issue(link.key, 'JiraTest') for link in self.links if link.is_test ]
 
     @property
     def risks(self):
-        return [ link for link in self.links if link.is_risk or link.link_type == 'Risk Mitigation' ]
+        return [ self.jira.get_issue(link.key, 'JiraRisk') for link in self.links if link.is_risk or link.link_type == 'Risk Mitigation' ]

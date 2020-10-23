@@ -1,4 +1,5 @@
 from functools import cached_property # import functools
+from typing import List
 import os
 import logging
 import json
@@ -16,7 +17,7 @@ from .requirement import JiraRequirement
 logger = logging.getLogger(__name__)
 
 class JiraHelper():
-    def __init__(self, config):
+    def __init__(self, config: dict):
         self.config = config
         if 'base_url' not in self.config:
             self.config['base_url'] = os.environ.get('JIRA_BASE_URL')
@@ -32,6 +33,7 @@ class JiraHelper():
         self.fix_version = self.config['fix_version']
         self.queries = self.config['queries']
         self.fields = self.config['fields']
+        self.field_list = [ '*all', '-project', '-comment', '-attachment', '-creator', '-reporter', '-assignee', '-watches', '-votes', '-worklog', '-customfield_10073' ]
         self.missed = { }
 
     @cached_property
@@ -62,7 +64,7 @@ class JiraHelper():
         logger.debug(f"Jira custom field schemas: {json.dumps(schemas, indent=4)}")
         return schemas
 
-    def get_weight(self, key, id):
+    def get_weight(self, key: str, id: str):
         logger.debug(f"getting weight for {key}, {id}")
         for value in self.all_schemas[key]['values']:
             if value['id'] == id:
@@ -105,7 +107,7 @@ class JiraHelper():
         start = 0
         while True:
             logger.debug(f"fetching offset {start} of query [{query}]")
-            res = self.jira.jql(query, start=start, limit=100, expand="renderedFields")
+            res = self.jira.jql(query, start=start, limit=100, fields=self.field_list, expand="renderedFields")
             results.extend(res['issues'])
             count = int(res['maxResults'])
             total = int(res['total'])
@@ -117,12 +119,12 @@ class JiraHelper():
                 break
         return results
 
-    def __get_issue(self, issue_key, cls=JiraIssue):
-        issue = self.jira.get_issue(issue_key)
+    def __get_issue(self, issue_key: str, cls=JiraIssue):
+        issue = self.jira.get_issue(issue_key, fields=self.field_list)
         logger.debug(f'got issue {issue_key} of type {cls}: {json.dumps(issue, indent=4)}')
         return cls(issue, self)
 
-    def get_issue(self, issue_key, cls=JiraIssue):
+    def get_issue(self, issue_key: str, cls=JiraIssue):
         logger.debug(f"requesting {issue_key} of type {cls}")
         if isinstance(cls, str):
             cls = globals()[cls]
@@ -135,15 +137,22 @@ class JiraHelper():
                 self.missed[issue_key] = issue
         return issue
 
-    def to_dict(self, issues, issue_type):
+    def to_dict(self, issues: List[JiraIssue], issue_type: str):
         return { issue.key: issue for issue in [ issue_type(issue, self) for issue in issues ] }
 
     @staticmethod
-    def exclude_junk(issues):
+    def prettify_links(text):
+        text = re.sub(r"""(<a.+>)(?:https://docs.google.+)(</a>)""", r"""\1Google Document\2""", text)
+        return re.sub(r"""(<a.+>)(?:https://tidepool.atlassian.net/browse/)(\w+-\d+)(</a>)""", r"""\1\2\3""", text)
+
+    @staticmethod
+    def exclude_junk(issues: List[JiraIssue], enforce_versions: bool = False):
+        if enforce_versions:
+            return [ issue for issue in issues if not issue.is_junk and issue.jira.fix_version in issue.fix_versions ]
         return [ issue for issue in issues if not issue.is_junk ]
 
     @staticmethod
-    def sorted_by_key(issues):
+    def sorted_by_key(issues: List[JiraIssue]):
         def issuekey(issue):
             parts = issue.key.split('-')
             return [ parts[0], int(parts[1]) ]
@@ -155,11 +164,11 @@ class JiraHelper():
         return sorted(issues, key=issuekey)
 
     @staticmethod
-    def sorted_by_id(issues):
+    def sorted_by_id(issues: List[JiraIssue]):
         # numerical sort of the each of the numbers in the id
         # otherwise, 1.2.3 would sort before 1.12.3
         return sorted(issues, key=lambda issue: [ int(id_part) for id_part in issue.id.split('.') ] if issue.id else '' )
 
     @staticmethod
-    def sorted_by_harm(issues):
+    def sorted_by_harm(issues: List[JiraIssue]):
         return sorted(issues, key=lambda issue: issue.harm)
