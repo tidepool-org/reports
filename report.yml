@@ -17,6 +17,7 @@ jira:
     done_criteria: customfield_10072
     test_strategy: customfield_10036
     reference_id: customfield_10140
+    source: customfield_10115
     sequence_of_events: customfield_10144
     harm: customfield_10089
     hazard_category: customfield_10095
@@ -170,6 +171,7 @@ excel:
       columns:
         - { width: 10, key: risk_key,             label: 'Risk Key' }
         - { width: 50, key: risk_summary,         label: 'Hazardous Situation' }
+        - { width: 25, key: source,               label: 'Source' }
         - { width: 30, key: sequence,             label: 'Sequence of Events' }
         - { width: 25, key: harm,                 label: 'Harm' }
         - { width: 13, key: hazard,               label: 'Hazard Category' }

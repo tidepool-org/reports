@@ -105,6 +105,7 @@
                         <tr>
                             <th class="key">Key</th>
                             <th class="summary">Hazardous Situation</th>
+                            <th class="source">Source</th>
                             <th class="status">Status</th>
                             <th class="score">Residual Risk Score</th>
                         </tr>
@@ -113,8 +114,9 @@
                         {%- for risk in risks|sort_by_harm -%}
                         <tr>
                             <td class="key">{{ issue_key(risk) }}</td>
-                            <td class="summary">{{ risk.summary }}</td>
                             {%- set full_risk = jira.get_issue(risk.key, 'JiraRisk') -%}
+                            <td class="summary">{{ full_risk.summary }}</td>
+                            <td class="source">{{ full_risk.source }}</td>
                             <td class="status">{{ full_risk.status }}</td>
                             <td class="score {{ risk_color(full_risk.color(full_risk.residual_risk)) }}">{{ full_risk.residual_risk }}</td>
                         </tr>
@@ -215,6 +217,7 @@
                 <table class="table table-bordered table-condensed table-striped table-responsive risks">
                     <thead>
                         <tr>
+                            <th rowspan="2" class=source">Source</th>
                             <th rowspan="2" class="harm">Harm</th>
                             <th rowspan="2" class="hazard">Hazard</th>
                             <th colspan="3" class="text-center">Initial Risk</th>
@@ -232,6 +235,7 @@
                     </thead>
                     <tbody>
                         <tr>
+                            <td class="source">{{ risk.source }}</td>
                             <td class="harm">{{ risk.harm }}</td>
                             <td class="hazard">{{ risk.hazard }}</td>
                             <td class="severity">{{ risk.initial_severity }}</td>

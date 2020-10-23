@@ -2,6 +2,10 @@ from .issue import JiraIssue
 
 class JiraRisk(JiraIssue):
     @property
+    def source(self):
+        return self.fields.get(self.jira.fields['source']) or ''
+
+    @property
     def sequence(self):
         return self.format_value('sequence_of_events')
 
