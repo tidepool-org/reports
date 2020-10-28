@@ -150,7 +150,7 @@ excel:
           options: { object_position: 3, x_offset: 500, y_offset: 100, x_scale: 0.25, y_scale: 0.25 }
     requirements:
       generator: add_requirements_sheet # method name in excel.py
-      name: 'Traceability'
+      name: 'Traceability Report'
       aggregate_risks: true
       columns:
         - { width: 7,  key: req_id,          label: 'Req ID' }
