@@ -475,7 +475,7 @@ class Excel():
         sheet.center_horizontally()
         sheet.fit_to_pages(1, 0)  # 1 page wide and as long as necessary.
         sheet.print_area(0, 0, rows - 1, columns - 1)
-        # sheet.set_default_row(hide_unused_rows=True)
+        sheet.set_default_row(hide_unused_rows = True)
 
     def format_text(self, sheet: xlsxwriter.worksheet, text: str) -> str:
         if text:
