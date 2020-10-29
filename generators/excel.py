@@ -259,7 +259,7 @@ class Excel():
 
             # stories, sorted by issue key
             story_row = req_row
-            for story in self.jira.sorted_by_key(req.stories):
+            for story in self.jira.sorted_by_key(self.jira.exclude_junk(req.stories, enforce_versions = True)):
                 log_issue(story, 1)
                 stories.add(story.key)
 
@@ -274,7 +274,7 @@ class Excel():
 
                 row = max(story_row + 1, test_row) - 1
                 self.write_key_and_summary(report, story_row, columns['story_key'].column, story, end_row = row)
-                row += 1
+                story_row = row + 1
 
             # risks, sorted by issue key
             risk_row = req_row
@@ -283,7 +283,7 @@ class Excel():
                 self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk)
                 risk_row += 1
 
-            row = max(req_row + 1, risk_row, row) - 1
+            row = max(req_row + 1, risk_row, story_row) - 1
             self.write_id(report, req_row, columns['req_id'].column, req, end_row = row)
             self.write_key_and_summary(report, req_row, columns['req_key'].column, req, end_row = row)
             self.write_html(report, req_row, columns['req_description'].column, req.description, end_row = row)
@@ -310,12 +310,12 @@ class Excel():
         stories = set()
         # epics, sorted by key
         row = 1
-        for epic in self.jira.sorted_by_key(epics.values()):
+        for epic in self.jira.sorted_by_key(self.jira.exclude_junk(epics.values(), enforce_versions = True)):
             log_issue(epic)
             epic_row = row
 
             # stories within the epic, sorted by key
-            for story in self.jira.sorted_by_key(epic.stories):
+            for story in self.jira.sorted_by_key(self.jira.exclude_junk(epic.stories, enforce_versions = True)):
                 log_issue(story, 1)
                 story_row = row
                 stories.add(story.key)
@@ -379,7 +379,7 @@ class Excel():
 
             # stories that mitigate this risk, sorted by key
             story_row = row
-            for story in self.jira.sorted_by_key(risk.stories):
+            for story in self.jira.sorted_by_key(self.jira.exclude_junk(risk.stories, enforce_versions = True)):
                 log_issue(story, 1)
                 stories.add(story.key)
                 self.write_key_and_summary(report, story_row, columns['mitigation_key'].column, story)

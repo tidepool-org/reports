@@ -137,22 +137,22 @@ class JiraHelper():
                 self.missed[issue_key] = issue
         return issue
 
-    def to_dict(self, issues: List[JiraIssue], issue_type: str):
+    def to_dict(self, issues: List[JiraIssue], issue_type: str) -> dict:
         return { issue.key: issue for issue in [ issue_type(issue, self) for issue in issues ] }
 
     @staticmethod
-    def prettify_links(text):
+    def prettify_links(text: str) -> str:
         text = re.sub(r"""(<a.+>)(?:https://docs.google.+)(</a>)""", r"""\1Google Document\2""", text)
         return re.sub(r"""(<a.+>)(?:https://tidepool.atlassian.net/browse/)(\w+-\d+)(</a>)""", r"""\1\2\3""", text)
 
     @staticmethod
-    def exclude_junk(issues: List[JiraIssue], enforce_versions: bool = False):
+    def exclude_junk(issues: List[JiraIssue], enforce_versions: bool = False) -> List[JiraIssue]:
         if enforce_versions:
             return [ issue for issue in issues if not issue.is_junk and issue.jira.fix_version in issue.fix_versions ]
         return [ issue for issue in issues if not issue.is_junk ]
 
     @staticmethod
-    def sorted_by_key(issues: List[JiraIssue]):
+    def sorted_by_key(issues: List[JiraIssue]) -> List[JiraIssue]:
         def issuekey(issue):
             parts = issue.key.split('-')
             return [ parts[0], int(parts[1]) ]
@@ -164,11 +164,11 @@ class JiraHelper():
         return sorted(issues, key=issuekey)
 
     @staticmethod
-    def sorted_by_id(issues: List[JiraIssue]):
+    def sorted_by_id(issues: List[JiraIssue]) -> List[JiraIssue]:
         # numerical sort of the each of the numbers in the id
         # otherwise, 1.2.3 would sort before 1.12.3
-        return sorted(issues, key=lambda issue: [ int(id_part) for id_part in issue.id.split('.') ] if issue.id else '' )
+        return sorted(issues, key=lambda issue: [ int(id_part) for id_part in issue.id.split('.') ] if issue.id else [ 0 ] )
 
     @staticmethod
-    def sorted_by_harm(issues: List[JiraIssue]):
+    def sorted_by_harm(issues: List[JiraIssue]) -> List[JiraIssue]:
         return sorted(issues, key=lambda issue: issue.harm)

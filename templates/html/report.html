@@ -50,7 +50,7 @@
                             <td class="key">{{ issue_key(story) }}</td>
                             <td class="summary">{{ story.summary }}</td>
                             <td class="tests">
-                                {%- set tests = story.tests|exclude_junk(True) -%}
+                                {%- set tests = story.tests|exclude_junk(enforce_versions = True) -%}
                                 {%- if tests -%}
                                 <table class="table table-bordered table-condensed table-striped table-responsive tests">
                                     <thead>
@@ -175,11 +175,11 @@
             <div class="panel panel-info">
                 <div class="panel-heading">
                     <h1>Traceability</h1>
-                    <small>{{ jira.requirements.values()|exclude_junk|count }} requirements</small>
+                    <small>{{ jira.requirements.values()|exclude_junk(enforce_versions = False)|count }} requirements</small>
                 </div>
             </div>
 
-            {%- for req in jira.requirements.values()|exclude_junk|sort_by_id -%}
+            {%- for req in jira.requirements.values()|exclude_junk(enforce_versions = False)|sort_by_id -%}
             <div class="panel panel-success">
                 <div class="panel-heading">
                     <h2>{{ issue_key(req) }} {{ req.id }} {{ req.summary }}</h2>
@@ -188,8 +188,8 @@
                     <p class="req_description">{{ req.description|prettify_links|safe }}</p>
                 </div>
 
-                {{ list_stories(req.stories|exclude_junk(True)) }}
-                {{ list_risks(req.risks|exclude_junk) }}
+                {{ list_stories(req.stories|exclude_junk(enforce_versions = True)) }}
+                {{ list_risks(req.risks|exclude_junk(enforce_versions = False)) }}
             </div>
             {%- endfor -%}
         </div>
@@ -201,11 +201,11 @@
             <div class="panel panel-info">
                 <div class="panel-heading">
                     <h1>Hazard Analysis</h1>
-                    <small>{{ jira.risks.values()|exclude_junk|count }} risks</small>
+                    <small>{{ jira.risks.values()|exclude_junk(enforce_versions = False)|count }} risks</small>
                 </div>
             </div>
 
-            {%- for risk in jira.risks.values()|exclude_junk|sort_by_harm -%}
+            {%- for risk in jira.risks.values()|exclude_junk(enforce_versions = False)|sort_by_harm -%}
             <div class="panel panel-success">
                 <div class="panel-heading">
                     <h2>{{ issue_key(risk) }} {{ risk.summary }}</h2>
@@ -251,7 +251,7 @@
                     </tfoot>
                 </table>
 
-                {{ list_stories(risk.stories|exclude_junk(True)) }}
+                {{ list_stories(risk.stories|exclude_junk(enforce_versions = True)) }}
             </div>
             {%- endfor -%}
         </div>
