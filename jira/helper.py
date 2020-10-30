@@ -30,7 +30,7 @@ class JiraHelper():
             url=self.config['base_url'],
             username=self.config['username'],
             password=self.config['api_token'])
-        self.fix_version = self.config['fix_version']
+        self.parameters = self.config['parameters']
         self.queries = self.config['queries']
         self.fields = self.config['fields']
         self.field_list = [ '*all', '-project', '-comment', '-attachment', '-creator', '-reporter', '-assignee', '-watches', '-votes', '-worklog', '-customfield_10073' ]
@@ -96,13 +96,8 @@ class JiraHelper():
         logger.info('fetching tests')
         return self.to_dict(self.jql(self.queries['tests']), JiraTest)
 
-    @cached_property
-    def testruns(self):
-        logger.info('fetching test runs')
-        return self.to_dict(self.jql(self.queries['testruns']), JiraTest)
-
     def jql(self, query: str):
-        query = query.format(fix_version=f'"{self.fix_version}"')
+        query = query.format(**self.parameters)
         results = [ ]
         start = 0
         while True:
@@ -148,7 +143,7 @@ class JiraHelper():
     @staticmethod
     def exclude_junk(issues: List[JiraIssue], enforce_versions: bool = False) -> List[JiraIssue]:
         if enforce_versions:
-            return [ issue for issue in issues if not issue.is_junk and issue.jira.fix_version in issue.fix_versions ]
+            return [ issue for issue in issues if not issue.is_junk and issue.jira.parameters['fix_version'] in issue.fix_versions ]
         return [ issue for issue in issues if not issue.is_junk ]
 
     @staticmethod

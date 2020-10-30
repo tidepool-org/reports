@@ -287,6 +287,7 @@ class Excel():
             self.write_id(report, req_row, columns['req_id'].column, req, end_row = row)
             self.write_key_and_summary(report, req_row, columns['req_key'].column, req, end_row = row)
             self.write_html(report, req_row, columns['req_description'].column, req.description, end_row = row)
+            self.merge(report, req_row, columns['gap'].column, end_row = row)
             row += 1
 
         report.ignore_errors({ 'number_stored_as_text': xl_range(0, 0, row - 1, columns.last) })

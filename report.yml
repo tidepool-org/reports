@@ -3,14 +3,15 @@ jira:
   # base_url: https://tidepool.atlassian.net
   # username: travis-ci@tidepool.org
   # api_token: ...
-  fix_version: 'FDA 510(k) Sub'
+  parameters:
+    fix_version: 'FDA 510(k) Sub'
+    component: '510(k)'
   queries:
-    requirements: project = TLFR AND issuetype = "Functional Requirement" AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY issuekey ASC
-    risks: project = TLR AND issuetype IN (Story, Task) AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY issuekey ASC
-    epics: project = LOOP AND fixVersion IN ({fix_version}) AND issuetype = "Epic" AND (resolution is EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component is EMPTY) ORDER BY issuekey ASC
-    stories: project = LOOP AND fixVersion IN ({fix_version}) AND issuetype IN (Story, Bug, Task, Sub-task) AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND "Epic Link" NOT IN (LOOP-496, LOOP-1501) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY "Epic Link" ASC, issuekey ASC
-    tests: project = LOOP AND issuetype IN ("Test") ORDER BY issuekey ASC
-    testruns: project = LOOP AND issuetype IN ("Test Execution") ORDER BY issuekey ASC
+    requirements: project=TLFR AND issuetype="Functional Requirement" AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY issuekey ASC
+    risks: project=TLR AND issuetype IN (Story, Task) AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY issuekey ASC
+    epics: project=LOOP AND fixVersion="{fix_version}" AND issuetype="Epic" AND (resolution is EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component is EMPTY) ORDER BY issuekey ASC
+    stories: project=LOOP AND (fixVersion="{fix_version}" OR component="{component}") AND issuetype IN (Story, Bug, Task, Sub-task) AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND "Epic Link" NOT IN (LOOP-496, LOOP-1501) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY "Epic Link" ASC, issuekey ASC
+    tests: project=LOOP AND issuetype IN ("Test") ORDER BY issuekey ASC
   fields:
     epic_key: customfield_10014
     functional_requirements: customfield_10132
