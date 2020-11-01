@@ -61,6 +61,7 @@ jira:
   cache:
     folder: cache
     refresh: 3600
+  exclude_fields: [ project, labels, comment, attachment, creator, reporter, assignee, watches, votes, worklog, workratio, progress, aggregateprogress, timetracking, timeestimate, aggregatetimeestimate, aggregatetimeoriginalestimate, timespent, aggregatetimespent, issuerestriction, lastViewed, customfield_10073, customfield_10026, customfield_10021, customfield_10038 ]
 
 zip:
   output: output/report.zip

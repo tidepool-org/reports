@@ -12,18 +12,18 @@ class JiraIssue(JiraBase):
 
     @property
     def resolution(self) -> str:
-        res = self.fields['resolution']
+        res = self.fields.get('resolution')
         if res:
             return res.get('name', '')
         return ''
 
     @property
     def description(self) -> str:
-        return self.rendered_fields['description'] or self.raw_description
+        return self.rendered_fields.get('description') or self.raw_description
 
     @property
     def raw_description(self) -> str:
-        return self.markdown.convert(self.fields['description'] or '')
+        return self.markdown.convert(self.fields.get('description', ''))
 
     @property
     def fix_versions(self) -> List[str]:
