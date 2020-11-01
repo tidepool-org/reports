@@ -1,6 +1,6 @@
 from .issue import JiraIssue
 
-class JiraRequirement(JiraIssue):
+class JiraFuncRequirement(JiraIssue):
     @property
     def id(self):
         return self.fields[self.jira.fields['reference_id']] or ''

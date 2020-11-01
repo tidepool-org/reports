@@ -1,6 +1,7 @@
 from functools import cached_property # import functools
 from typing import List
 import os
+import time
 import logging
 import json
 import re
@@ -10,9 +11,12 @@ from requests.exceptions import HTTPError
 from .issue import JiraIssue
 from .epic import JiraEpic
 from .story import JiraStory
+from .bug import JiraBug
 from .test import JiraTest
 from .risk import JiraRisk
-from .requirement import JiraRequirement
+from .func_req import JiraFuncRequirement
+from .user_req import JiraUserRequirement
+from .instruction import JiraInstruction
 
 logger = logging.getLogger(__name__)
 
@@ -30,25 +34,40 @@ class JiraHelper():
             url=self.config['base_url'],
             username=self.config['username'],
             password=self.config['api_token'])
+        self.cache_folder = self.config['cache']['folder']
+        os.makedirs(self.cache_folder, exist_ok=True)
+        self.cache_refresh = int(self.config['cache']['refresh'])
         self.parameters = self.config['parameters']
         self.queries = self.config['queries']
         self.fields = self.config['fields']
-        self.field_list = [ '*all', '-project', '-comment', '-attachment', '-creator', '-reporter', '-assignee', '-watches', '-votes', '-worklog', '-customfield_10073' ]
+        self.issue_types = self.config['issue_types']
+        self.link_types = self.config['link_types']
+        self.field_list = [ '*all', '-self', '-comment', '-attachment', '-creator', '-reporter', '-assignee', '-watches', '-votes', '-worklog', '-customfield_10073' ]
         self.missed = { }
+        self.all_fields
+        self.all_schemas
+        self.all_link_types
 
     @cached_property
     def all_issues(self):
-        return { **self.requirements, **self.risks, **self.stories, **self.epics }
+        return { **self.func_requirements, **self.user_requirements, **self.risks, **self.stories, **self.epics, **self.tests, **self.instructions }
 
     @cached_property
     def all_fields(self):
+        fields = self.read_cache('fields')
+        if fields:
+            return fields
         logger.info("fetching Jira fields")
         fields = self.jira.get_all_fields()
-        logger.debug(f"Jira fields: {json.dumps(fields, indent=4)}")
+        logger.debug(f"Jira fields: {json.dumps(fields, indent = 4)}")
+        self.write_cache('fields', fields)
         return fields
 
     @cached_property
     def all_schemas(self):
+        schemas = self.read_cache('schemas')
+        if schemas:
+            return schemas
         logger.info("fetching Jira custom field schemas")
         schemas = {}
         for key, field_id in self.fields.items():
@@ -61,8 +80,20 @@ class JiraHelper():
                 pass
             except HTTPError as err:
                 logger.warn(f"failed to fetch custom field schema for {custom_key}, reason {err.response.status_code}")
-        logger.debug(f"Jira custom field schemas: {json.dumps(schemas, indent=4)}")
+        logger.debug(f"Jira custom field schemas: {json.dumps(schemas, indent = 4)}")
+        self.write_cache('schemas', schemas)
         return schemas
+
+    @cached_property
+    def all_link_types(self):
+        link_types = self.read_cache('link_types')
+        if link_types:
+            return link_types
+        logger.info("fetching Jira link types")
+        link_types = self.jira.get_issue_link_types()
+        logger.debug(f"Jira link types: {json.dumps(link_types, indent = 4)}")
+        self.write_cache('link_types', link_types)
+        return link_types
 
     def get_weight(self, key: str, id: str):
         logger.debug(f"getting weight for {key}, {id}")
@@ -72,68 +103,100 @@ class JiraHelper():
         return None
 
     @cached_property
-    def requirements(self):
-        logger.info('fetching requirements')
-        return self.to_dict(self.jql(self.queries['requirements']), JiraRequirement)
+    def func_requirements(self):
+        logger.info('fetching functional requirements')
+        return self.to_dict(self.jql('func_requirements'), JiraFuncRequirement)
+
+    @cached_property
+    def user_requirements(self):
+        logger.info('fetching user requirements')
+        return self.to_dict(self.jql('user_requirements'), JiraUserRequirement)
 
     @cached_property
     def risks(self):
         logger.info('fetching risks')
-        return self.to_dict(self.jql(self.queries['risks']), JiraRisk)
+        return self.to_dict(self.jql('risks'), JiraRisk)
 
     @cached_property
     def epics(self):
         logger.info('fetching epics')
-        return self.to_dict(self.jql(self.queries['epics']), JiraEpic)
+        return self.to_dict(self.jql('epics'), JiraEpic)
 
     @cached_property
     def stories(self):
         logger.info('fetching stories')
-        return self.to_dict(self.jql(self.queries['stories']), JiraStory)
+        return self.to_dict(self.jql('stories'), JiraStory)
 
     @cached_property
     def tests(self):
         logger.info('fetching tests')
-        return self.to_dict(self.jql(self.queries['tests']), JiraTest)
+        return self.to_dict(self.jql('tests'), JiraTest)
+
+    @cached_property
+    def instructions(self):
+        logger.info('fetching instructions')
+        return self.to_dict(self.jql('instructions'), JiraInstruction)
 
     def jql(self, query: str):
-        query = query.format(**self.parameters)
+        results = self.read_cache(query)
+        if results:
+            return results
+        jql = self.queries[query].format(**self.parameters)
         results = [ ]
         start = 0
         while True:
-            logger.debug(f"fetching offset {start} of query [{query}]")
-            res = self.jira.jql(query, start=start, limit=100, fields=self.field_list, expand="renderedFields")
+            logger.debug(f"fetching offset {start} of query {query} = [{jql}]")
+            res = self.jira.jql(jql, start=start, limit=100, fields=self.field_list, expand="renderedFields")
             results.extend(res['issues'])
             count = int(res['maxResults'])
             total = int(res['total'])
             logger.debug(f"got {count} results out of {total}")
             if logger.isEnabledFor(logging.DEBUG):
-                logger.debug(json.dumps(res, indent=4))
+                logger.debug(json.dumps(res, indent = 4))
             start += count
             if start >= total:
                 break
+        self.write_cache(query, results)
         return results
 
-    def __get_issue(self, issue_key: str, cls=JiraIssue):
-        issue = self.jira.get_issue(issue_key, fields=self.field_list)
-        logger.debug(f'got issue {issue_key} of type {cls}: {json.dumps(issue, indent=4)}')
+    def __get_issue(self, issue_key: str, cls = JiraIssue):
+        issue = self.read_cache(issue_key)
+        if not issue:
+            issue = self.jira.get_issue(issue_key, fields = self.field_list)
+            logger.debug(f'got issue {cls.__name__} {issue_key}: {json.dumps(issue, indent = 4)}')
+            self.write_cache(issue_key, issue)
         return cls(issue, self)
 
-    def get_issue(self, issue_key: str, cls=JiraIssue):
-        logger.debug(f"requesting {issue_key} of type {cls}")
+    def get_issue(self, issue_key: str, cls = JiraIssue):
         if isinstance(cls, str):
             cls = globals()[cls]
+        logger.debug(f'requesting {cls.__name__} {issue_key}')
         issue = self.all_issues.get(issue_key)
         if not issue:
             issue = self.missed.get(issue_key)
             if not issue:
-                logger.debug(f"cache miss, fetching {issue_key} of type {cls}")
+                logger.debug(f'cache miss, fetching {cls.__name__} {issue_key}')
                 issue = self.__get_issue(issue_key, cls)
                 self.missed[issue_key] = issue
         return issue
 
     def to_dict(self, issues: List[JiraIssue], issue_type: str) -> dict:
         return { issue.key: issue for issue in [ issue_type(issue, self) for issue in issues ] }
+
+    def read_cache(self, cache_key: str) -> dict:
+        cache_file = os.path.join(self.cache_folder, f"{cache_key}.json")
+        if os.path.exists(cache_file):
+            if os.stat(cache_file).st_mtime + self.cache_refresh >= time.time():
+                logger.debug(f"reading {cache_key} from cache file {cache_file}")
+                with open(cache_file, 'r') as f:
+                    return json.load(f)
+        return None
+
+    def write_cache(self, cache_key: str, content) -> dict:
+        cache_file = os.path.join(self.cache_folder, f"{cache_key}.json")
+        with open(cache_file, 'w') as f:
+            logger.debug(f"writing {cache_key} into cache file {cache_file}")
+            json.dump(content, f, indent = 4)
 
     @staticmethod
     def prettify_links(text: str) -> str:
@@ -143,7 +206,7 @@ class JiraHelper():
     @staticmethod
     def exclude_junk(issues: List[JiraIssue], enforce_versions: bool = False) -> List[JiraIssue]:
         if enforce_versions:
-            return [ issue for issue in issues if not issue.is_junk and issue.jira.parameters['fix_version'] in issue.fix_versions ]
+            return [ issue for issue in issues if not issue.is_junk and issue.jira.parameters['fix_version'] in issue.full_issue.fix_versions ]
         return [ issue for issue in issues if not issue.is_junk ]
 
     @staticmethod
@@ -166,4 +229,4 @@ class JiraHelper():
 
     @staticmethod
     def sorted_by_harm(issues: List[JiraIssue]) -> List[JiraIssue]:
-        return sorted(issues, key=lambda issue: issue.harm)
+        return sorted(issues, key=lambda issue: f'{issue.harm}:{issue.hazard}')

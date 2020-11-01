@@ -208,7 +208,7 @@ class Excel():
 
         for sheet_id, sheet in self.config['sheets'].items():
             generator_method = getattr(self.__class__, sheet['generator'])
-            generator_method(self, book)
+            generator_method(self, book, sheet)
 
         logger.info(f"closing file {output_file}")
         book.close()
@@ -217,8 +217,7 @@ class Excel():
     #
     # cover
     #
-    def add_cover_sheet(self, book: xlsxwriter.Workbook) -> None:
-        props = self.config['sheets']['cover']
+    def add_cover_sheet(self, book: xlsxwriter.Workbook, props: dict) -> None:
         logger.info(f"adding cover sheet '{props['name']}'")
         cover = book.add_worksheet(props['name'])
 
@@ -239,8 +238,7 @@ class Excel():
     #
     # requirements
     #
-    def add_requirements_sheet(self, book: xlsxwriter.Workbook) -> None:
-        props = self.config['sheets']['requirements']
+    def add_requirements_sheet(self, book: xlsxwriter.Workbook, props: dict) -> None:
         logger.info(f"adding report sheet '{props['name']}'")
         report = book.add_worksheet(props['name'])
         columns = Columns(props['columns'])
@@ -248,20 +246,16 @@ class Excel():
 
         req_format = self.add_format(book)
 
-        reqs = self.jira.requirements
-        logger.info(f'listing {len(reqs)} requirements')
-        stories = set()
         # requirements, sorted by requirement ID
         row = 1
-        for req in self.jira.sorted_by_id(reqs.values()):
+        for req in self.jira.sorted_by_id(self.jira.exclude_junk(self.jira.func_requirements.values(), enforce_versions = False)):
             log_issue(req)
             req_row = row
 
             # stories, sorted by issue key
             story_row = req_row
-            for story in self.jira.sorted_by_key(self.jira.exclude_junk(req.stories, enforce_versions = True)):
+            for story in self.jira.sorted_by_key(self.jira.exclude_junk(req.defines, enforce_versions = True)):
                 log_issue(story, 1)
-                stories.add(story.key)
 
                 # tests, sorted by issue key
                 test_row = story_row
@@ -269,7 +263,7 @@ class Excel():
                     log_issue(test, 2)
                     self.write_key_and_summary(report, test_row, columns['test_key'].column, test)
                     test_row += 1
-                if len(story.tests) == 0:
+                if test_row == story_row:
                     self.write_status(report, story_row, columns['test_status'].column, story)
 
                 row = max(story_row + 1, test_row) - 1
@@ -293,25 +287,21 @@ class Excel():
         report.ignore_errors({ 'number_stored_as_text': xl_range(0, 0, row - 1, columns.last) })
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
-        logger.info(f'found {len(stories)} unique stories')
+        logger.info(f"done adding report sheet '{props['name']}'")
 
 
     #
     # epics
     #
-    def add_epics_sheet(self, book: xlsxwriter.Workbook):
-        props = self.config['sheets']['epics']
+    def add_epics_sheet(self, book: xlsxwriter.Workbook, props: dict):
         logger.info(f"adding report sheet '{props['name']}'")
         report = book.add_worksheet(props['name'])
         columns = Columns(props['columns'])
         self.set_headings(report, columns)
 
-        epics = self.jira.epics
-        logger.info(f'listing {len(epics)} epics')
-        stories = set()
         # epics, sorted by key
         row = 1
-        for epic in self.jira.sorted_by_key(self.jira.exclude_junk(epics.values(), enforce_versions = True)):
+        for epic in self.jira.sorted_by_key(self.jira.exclude_junk(self.jira.epics.values(), enforce_versions = True)):
             log_issue(epic)
             epic_row = row
 
@@ -319,7 +309,6 @@ class Excel():
             for story in self.jira.sorted_by_key(self.jira.exclude_junk(epic.stories, enforce_versions = True)):
                 log_issue(story, 1)
                 story_row = row
-                stories.add(story.key)
 
                 # risks within the story, sorted by key
                 risk_row = story_row
@@ -356,33 +345,28 @@ class Excel():
 
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
-        logger.info(f'found {len(stories)} unique stories')
+        logger.info(f"done adding report sheet '{props['name']}'")
 
 
     #
     # risks
     #
-    def add_risks_sheet(self, book: xlsxwriter.Workbook):
-        props = self.config['sheets']['risks']
+    def add_risks_sheet(self, book: xlsxwriter.Workbook, props: dict):
         logger.info(f"adding report sheet '{props['name']}'")
         report = book.add_worksheet(props['name'])
         columns = Columns(props['columns'])
         self.set_headings(report, columns)
 
-        risks = self.jira.risks
-        logger.info(f'listing {len(risks)} risks')
-        stories = set()
         # risks, sorted by harm
         row = 1
-        for risk in self.jira.sorted_by_harm(risks.values()):
+        for risk in self.jira.sorted_by_harm(self.jira.exclude_junk(self.jira.risks.values(), enforce_versions = False)):
             log_issue(risk)
             risk_row = row
 
             # stories that mitigate this risk, sorted by key
             story_row = row
-            for story in self.jira.sorted_by_key(self.jira.exclude_junk(risk.stories, enforce_versions = True)):
+            for story in self.jira.sorted_by_key(self.jira.exclude_junk(risk.mitigated_by, enforce_versions = False)):
                 log_issue(story, 1)
-                stories.add(story.key)
                 self.write_key_and_summary(report, story_row, columns['mitigation_key'].column, story)
                 story_row += 1
 
@@ -409,7 +393,74 @@ class Excel():
         self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['high'], 'format': high_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
-        logger.info(f'found {len(stories)} unique stories')
+        logger.info(f"done adding report sheet '{props['name']}'")
+
+    #
+    # risks v2
+    #
+    def add_risks_sheet_v2(self, book: xlsxwriter.Workbook, props: dict):
+        logger.info(f"adding report sheet '{props['name']}'")
+        report = book.add_worksheet(props['name'])
+        columns = Columns(props['columns'])
+        self.set_headings(report, columns)
+
+        # risks, sorted by harm
+        row = 1
+        for risk in self.jira.sorted_by_harm(self.jira.exclude_junk(self.jira.risks.values(), enforce_versions = False)):
+            log_issue(risk)
+            risk_row = row
+
+            # examine all issues that are linked to this risk
+            logger.debug(f'examining {risk.key} links')
+            mitigations = set()
+            for issue in self.jira.exclude_junk(risk.links, enforce_versions = False):
+                logger.debug(f'looking at {issue.type} {issue.key}')
+                if issue.is_instruction: # if it's an IFU, then use it as-is regardless of link type (mitigates vs. relates)
+                    logger.debug(f'using instruction {issue.key}')
+                    log_issue(issue, 1)
+                    mitigations.add(issue)
+                elif issue.is_story and issue.is_mitigated_by:
+                    count = len(mitigations)
+                    for func_req in issue.defined_by:
+                        logger.debug(f'using functional requirement {func_req.key} instead of {issue.key}')
+                        log_issue(func_req, 1)
+                        mitigations.add(func_req)
+                    if count == len(mitigations): # no functional requirements found
+                        logger.debug(f'using {issue.key}, no functional requirements found')
+                        log_issue(func_req, 1)
+                        mitigations.add(issue)
+
+            # now list them all in the sheet
+            logger.debug(f'adding {len(mitigations)} mitigations')
+            story_row = row
+            for mitigation in self.jira.sorted_by_key(mitigations):
+                self.write_key_and_summary(report, story_row, columns['mitigation_key'].column, mitigation)
+                story_row += 1
+
+            row = max(risk_row + 1, story_row) - 1
+            self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk, end_row=row)
+            self.write_html(report, risk_row, columns['sequence'].column, risk.sequence, end_row=row)
+            self.write(report, risk_row, columns['source'].column, risk.source, end_row=row)
+            self.write(report, risk_row, columns['harm'].column, risk.harm, end_row=row)
+            self.write(report, risk_row, columns['hazard'].column, risk.hazard, end_row=row)
+            self.write(report, risk_row, columns['initial_severity'].column, risk.initial_severity, end_row=row)
+            self.write(report, risk_row, columns['initial_probability'].column, risk.initial_probability, end_row=row)
+            self.write(report, risk_row, columns['initial_risk'].column, risk.initial_risk, end_row=row)
+            self.write(report, risk_row, columns['residual_severity'].column, risk.residual_severity, end_row=row)
+            self.write(report, risk_row, columns['residual_probability'].column, risk.residual_probability, end_row=row)
+            self.write(report, risk_row, columns['residual_risk'].column, risk.residual_risk, end_row=row)
+            self.write(report, risk_row, columns['benefit'].column, risk.benefit, end_row=row)
+            row += 1
+
+        low_format = self.add_format(book, self.config['formats']['low_risk'])
+        medium_format = self.add_format(book, self.config['formats']['medium_risk'])
+        high_format = self.add_format(book, self.config['formats']['high_risk'])
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['low'], 'format': low_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['medium'], 'format': medium_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['high'], 'format': high_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_paper(report, row, len(columns))
+        self.set_header_and_footer(report)
+        logger.info(f"done adding report sheet '{props['name']}'")
 
     #
     # helper methods

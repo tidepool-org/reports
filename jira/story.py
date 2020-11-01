@@ -5,10 +5,6 @@ logger = logging.getLogger(__name__)
 
 class JiraStory(JiraIssue):
     @property
-    def epic_key(self):
-        return self.fields[self.jira.fields['epic_key']]
-
-    @property
     def requirements(self):
         return self.rendered_fields[self.jira.fields['functional_requirements']] or self.raw_requirements
 

@@ -1,83 +1,72 @@
 from functools import cached_property # import functools
 from .base import JiraBase
+from .link_dir import JiraLinkDirection
 
 class JiraLink(JiraBase):
     def __init__(self, link, jira):
-        super().__init__(jira)
         self.link = link
+        if self.direction == JiraLinkDirection.INWARD:
+            issue = self.link['inwardIssue']
+        elif self.direction == JiraLinkDirection.OUTWARD:
+            issue = self.link['outwardIssue']
+        super().__init__(issue, jira)
 
-    @property
-    def direction(self):
+    @cached_property
+    def direction(self) -> JiraLinkDirection:
         if 'inwardIssue' in self.link:
-            return 'inward'
+            return JiraLinkDirection.INWARD
         elif 'outwardIssue' in self.link:
-            return 'outward'
+            return JiraLinkDirection.OUTWARD
         raise NotImplementedError
 
-    @property
-    def issue(self):
-        if 'inwardIssue' in self.link:
-            return self.link['inwardIssue']
-        elif 'outwardIssue' in self.link:
-            return self.link['outwardIssue']
-        raise NotImplementedError
+    @cached_property
+    def issue_class(self) -> str:
+        if self.is_story:
+            return 'JiraStory'
+        elif self.is_risk:
+            return 'JiraRisk'
+        elif self.is_func_requirement:
+            return 'JiraFuncRequirement'
+        elif self.is_instruction:
+            return 'JiraInstruction'
+        elif self.is_test:
+            return 'JiraTest'
+        elif self.is_bug:
+            return 'JiraBug'
+        return 'JiraIssue'
 
     @property
-    def fields(self):
-        return self.issue['fields']
-        
-    @property
-    def type(self):
-        return self.fields['issuetype']['name']
+    def link_type(self) -> int:
+        return int(self.link['type']['id'])
+
+    def is_link(self, link_name: str, direction: JiraLinkDirection) -> bool:
+        if direction:
+            return self.link_type == self.jira.link_types[link_name]['id'] and self.direction == direction
+        return self.link_type == self.jira.link_types[link_name]['id']
 
     @property
-    def link_type(self):
-        return self.link['type']['name']
+    def is_related(self) -> bool:
+        return self.is_link('relates', None)
 
     @property
-    def summary(self):
-        return self.raw_summary
+    def is_defined_by(self) -> bool:
+        return self.is_link('defines', JiraLinkDirection.INWARD)
 
     @property
-    def raw_summary(self):
-        return self.fields['summary']
+    def defines(self) -> bool:
+        return self.is_link('defines', JiraLinkDirection.OUTWARD)
 
     @property
-    def inwardType(self):
-        return self.link['type']['inward']
+    def is_mitigated_by(self) -> bool:
+        return self.is_link('mitigates', JiraLinkDirection.INWARD)
 
     @property
-    def outwardType(self):
-        return self.link['type']['outward']
+    def mitigates(self) -> bool:
+        return self.is_link('mitigates', JiraLinkDirection.OUTWARD)
 
     @cached_property
     def full_issue(self):
-        if self.outwardType in [ 'is mitigated by', 'defines', 'created' ]:
-            return self.jira.get_issue(self.key, 'JiraIssue')
-        elif self.outwardType in [ 'mitigates', 'verifies' ]:
-            return self.jira.get_issue(self.key, 'JiraRisk')
-        elif self.outwardType in [ 'is defined by' ]:
-            return self.jira.get_issue(self.key, 'JiraRequirement')
-        elif self.outwardType in [ 'is tested by' ]:
-            return self.jira.get_issue(self.key, 'JiraTest')
-        return self.jira.get_issue(self.key, 'JiraIssue')
+        return self.jira.get_issue(self.key, self.issue_class)
 
-    @property
-    def status(self):
-        return self.full_issue.status
-
-    @property
-    def status_category(self):
-        return self.full_issue.status_category
-
-    @property
-    def resolution(self):
-        return self.full_issue.resolution
-
-    @property
-    def harm(self):
-        return self.full_issue.harm
-
-    @property
-    def tests(self):
-        return self.full_issue.tests
+    def __getattr__(self, name: str):
+        return getattr(self.full_issue, name)

@@ -1,7 +1,9 @@
+from abc import ABC, abstractmethod
 import markdown
 
-class JiraBase:
-    def __init__(self, jira):
+class JiraBase(ABC):
+    def __init__(self, issue, jira):
+        self.issue = issue
         self.jira = jira
         self.markdown = markdown.Markdown()
 
@@ -12,49 +14,98 @@ class JiraBase:
         return hash(self.key)
 
     @property
-    def type(self):
-        pass
+    def full_issue(self):
+        # overridden by derived class such as JiraLink
+        return self
 
     @property
-    def key(self):
+    def type(self) -> int:
+        return int(self.fields['issuetype']['id'])
+
+    @property
+    def key(self) -> str:
         return self.issue['key']
 
     @property
-    def url(self):
+    def project_key(self) -> str:
+        return self.key.split('-')[0]
+
+    @property
+    def fields(self) -> dict:
+        return self.issue['fields'] or {}
+
+    @property
+    def rendered_fields(self) -> dict:
+        return self.issue.get('renderedFields') or {}
+
+    @property
+    def url(self) -> str:
         return f"{self.jira.config['base_url']}/browse/{self.key}"
 
     @property
-    def icon(self):
+    def icon(self) -> str:
         return self.fields['issuetype']['iconUrl']
 
     @property
-    def status(self):
+    def status(self) -> str:
         return self.fields['status']['name']
 
     @property
-    def status_category(self):
+    def status_category(self) -> str:
         return self.fields['status']['statusCategory']['name']
 
     @property
-    def is_story(self):
-        return self.type == 'Story' or self.type == 'Task'
+    def priority(self) -> str:
+        return self.fields['priority']['name']
 
     @property
-    def is_test(self):
-        return self.type == 'Test'
+    def summary(self):
+        return self.raw_summary
 
     @property
-    def is_risk(self):
-        return self.type == 'Risk Mitigation'
+    def raw_summary(self):
+        return self.fields['summary']
+
+    def is_a(self, type_name: str) -> bool:
+        issue_type = self.jira.issue_types[type_name]
+        return self.type in issue_type['ids'] and self.project_key in issue_type['projects']
 
     @property
-    def is_junk(self):
+    def is_story(self) -> bool:
+        return self.is_a('story')
+
+    @property
+    def is_bug(self) -> bool:
+        return self.is_a('bug')
+
+    @property
+    def is_test(self) -> bool:
+        return self.is_a('test')
+
+    @property
+    def is_risk(self) -> bool:
+        return self.is_a('risk')
+
+    @property
+    def is_func_requirement(self) -> bool:
+        return self.is_a('func_requirement')
+
+    @property
+    def is_user_requirement(self) -> bool:
+        return self.is_a('user_requirement')
+
+    @property
+    def is_instruction(self) -> bool:
+        return self.is_a('instruction')
+
+    @property
+    def is_junk(self) -> bool:
         return self.resolution in [ 'Duplicate', "Won't Do" ]
 
     @property
-    def is_done(self):
+    def is_done(self) -> bool:
         return self.status in [ 'Waiting for Approval', 'Waiting for Deployment', 'Closed' ]
 
     @property
-    def is_blocked(self):
+    def is_blocked(self) -> bool:
         return self.status in [ 'Blocked' ]

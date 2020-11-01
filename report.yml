@@ -6,12 +6,15 @@ jira:
   parameters:
     fix_version: 'FDA 510(k) Sub'
     component: '510(k)'
+    exclude: ExcludeFromReport
   queries:
-    requirements: project=TLFR AND issuetype="Functional Requirement" AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY issuekey ASC
-    risks: project=TLR AND issuetype IN (Story, Task) AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY issuekey ASC
-    epics: project=LOOP AND fixVersion="{fix_version}" AND issuetype="Epic" AND (resolution is EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND (component NOT IN (ExcludeFromReport) OR component is EMPTY) ORDER BY issuekey ASC
-    stories: project=LOOP AND (fixVersion="{fix_version}" OR component="{component}") AND issuetype IN (Story, Bug, Task, Sub-task) AND (resolution IS EMPTY OR resolution NOT IN ("Cannot Reproduce", Duplicate, "Won't Do")) AND "Epic Link" NOT IN (LOOP-496, LOOP-1501) AND (component NOT IN (ExcludeFromReport) OR component IS EMPTY) ORDER BY "Epic Link" ASC, issuekey ASC
-    tests: project=LOOP AND issuetype IN ("Test") ORDER BY issuekey ASC
+    func_requirements: project=TLFR AND issuetype="Functional Requirement" AND (component NOT IN ({exclude}) OR component IS EMPTY)
+    user_requirements: project=TLFR AND issuetype="User Requirement" AND (component NOT IN ({exclude}) OR component IS EMPTY)
+    risks: project=TLR AND issuetype IN (Story, Task) AND (component NOT IN ({exclude}) OR component IS EMPTY)
+    epics: project=LOOP AND fixVersion="{fix_version}" AND issuetype="Epic" AND (component NOT IN ({exclude}) OR component is EMPTY)
+    stories: project=LOOP AND (fixVersion="{fix_version}" OR component="{component}") AND issuetype IN (Story, Bug, Task, Sub-task) AND (component NOT IN ({exclude}) OR component IS EMPTY)
+    tests: project=LOOP AND issuetype IN ("Test", "Test Execution", "Sub Test Execution") AND (component NOT IN ({exclude}) OR component IS EMPTY)
+    instructions: project=IFU AND (component NOT IN ({exclude}) OR component IS EMPTY)
   fields:
     epic_key: customfield_10014
     functional_requirements: customfield_10132
@@ -29,6 +32,35 @@ jira:
     residual_probability: customfield_10094
     residual_risk: customfield_10102
     benefit: customfield_10142
+    risk_level: customfield_10027
+    uea_level: customfield_10028
+  issue_types:
+    epic:                { ids: [ 10000 ], projects: [ LOOP, TLR, TLFR, IFU ] }
+    story:               { ids: [ 10001, 10002 ], projects: [ LOOP ] }
+    subtask:             { ids: [ 10003 ], projects: [ LOOP, TLR, TLFR, IFU ] }
+    bug:                 { ids: [ 10004 ], projects: [ LOOP ] }
+    feedback:            { ids: [ 10005 ], projects: [ LOOP ] }
+    test:                { ids: [ 10016, 10019, 10021 ], projects: [ LOOP ] }
+    func_requirement:    { ids: [ 10024 ], projects: [ TLFR ] }
+    user_requirement:    { ids: [ 10027 ], projects: [ TLFR ] }
+    risk:                { ids: [ 10001 ], projects: [ TLR ] } # yes, same ID as story
+    external_mitigation: { ids: [ 10026 ], projects: [ TLR ] }
+    instruction:         { ids: [ 10001, 10002 ], projects: [ IFU ] } # yes, same as story
+  link_types:
+    blocks:     { id: 10000 }
+    clones:     { id: 10001 }
+    duplicates: { id: 10002 }
+    relates:    { id: 10003 }
+    splits:     { id: 10102 }
+    mitigates:  { id: 10103 }
+    verifies:   { id: 10104 }
+    tests:      { id: 10105 }
+    defect:     { id: 10106 }
+    changes:    { id: 10107 }
+    defines:    { id: 10108 }
+  cache:
+    folder: cache
+    refresh: 3600
 
 zip:
   output: output/report.zip
@@ -80,7 +112,7 @@ excel:
     company: 'Tidepool Project'
     keywords: 'traceability,hazard,analysis,verification,test,report'
     comments: 'Created with Python and atlassian-python-api and xlsxwriter'
-  window_size: [ 1600, 1200 ]
+  window_size: [ 2500, 1400 ]
   page:
     paper_size: 5 # US Legal size
     margins: { left: 0.5, right: 0.5, top: 0.75, bottom: 0.5 }
@@ -168,7 +200,26 @@ excel:
         - { width: 50, key: risk_summary,    label: 'Hazardous Situation' }
     risks:
       generator: add_risks_sheet # method name in excel.py
-      name: Hazard Analysis
+      name: 'Hazard Analysis'
+      columns:
+        - { width: 10, key: risk_key,             label: 'Risk Key' }
+        - { width: 50, key: risk_summary,         label: 'Hazardous Situation' }
+        - { width: 25, key: source,               label: 'Source' }
+        - { width: 30, key: sequence,             label: 'Sequence of Events' }
+        - { width: 25, key: harm,                 label: 'Harm' }
+        - { width: 13, key: hazard,               label: 'Hazard Category' }
+        - { width: 12, key: initial_severity,     label: 'Initial Severity' }
+        - { width: 12, key: initial_probability,  label: 'Initial Probability' }
+        - { width: 11, key: initial_risk,         label: 'Initial Risk Score' }
+        - { width: 10, key: mitigation_key,       label: 'Mitigation Key' }
+        - { width: 50, key: mitigation_summary,   label: 'Mitigation Summary' }
+        - { width: 12, key: residual_severity,    label: 'Residual Severity' }
+        - { width: 12, key: residual_probability, label: 'Residual Probability' }
+        - { width: 11, key: residual_risk,        label: 'Residual Risk Score' }
+        - { width: 10, key: benefit,              label: 'Benefit outweigh Risks? Y/N' }
+    risks2:
+      generator: add_risks_sheet_v2 # method name in excel.py
+      name: 'Hazard Analysis v2'
       columns:
         - { width: 10, key: risk_key,             label: 'Risk Key' }
         - { width: 50, key: risk_summary,         label: 'Hazardous Situation' }

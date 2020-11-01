@@ -175,11 +175,11 @@
             <div class="panel panel-info">
                 <div class="panel-heading">
                     <h1>Traceability</h1>
-                    <small>{{ jira.requirements.values()|exclude_junk(enforce_versions = False)|count }} requirements</small>
+                    <small>{{ jira.func_requirements.values()|exclude_junk(enforce_versions = False)|count }} requirements</small>
                 </div>
             </div>
 
-            {%- for req in jira.requirements.values()|exclude_junk(enforce_versions = False)|sort_by_id -%}
+            {%- for req in jira.func_requirements.values()|exclude_junk(enforce_versions = False)|sort_by_id -%}
             <div class="panel panel-success">
                 <div class="panel-heading">
                     <h2>{{ issue_key(req) }} {{ req.id }} {{ req.summary }}</h2>

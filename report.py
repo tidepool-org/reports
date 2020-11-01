@@ -25,6 +25,10 @@ def read_config(filename: str):
         except yaml.YAMLError as ex:
             logger.fatal(ex)
 
+class NegateAction(argparse.Action):
+    def __call__(self, parser, ns, values, option):
+        setattr(ns, self.dest, option[2:4] != 'no')
+
 def main():
     logger.info('Tidepool Report Generator v0.1')
     logger.debug('parsing arguments')
@@ -36,7 +40,8 @@ def main():
     parser.add_argument('--pdf', action='store_true', help='generate PDF output from HTML')
     parser.add_argument('--excel', action='store_true', help='generate XLSX output')
     parser.add_argument('--graph', action='store_true', help='generate graph output')
-    parser.add_argument('--zip', action='store_true', help='combine output files into a ZIP file')
+    parser.add_argument('--cache', '--no-cache', dest='cache', default=True, action=NegateAction, nargs=0, help='cache data')
+    parser.add_argument('--zip', '--no-zip', dest='zip', default=True, action=NegateAction, nargs=0, help='combine output files into a ZIP file')
 
     args = parser.parse_args()
     config = read_config(args.config)

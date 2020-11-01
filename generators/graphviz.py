@@ -20,7 +20,7 @@ class GraphViz():
         logger.info(f"generating {graph_file}")
         graph = Digraph(comment=f"Generated on {self.config['generated']}", graph_attr={'rankdir': 'LR', 'splines': 'ortho'}, node_attr={'shape': 'none'})
 
-        for req in self.jira.sorted_by_id(self.jira.requirements.values()):
+        for req in self.jira.sorted_by_id(self.jira.func_requirements.values()):
             self.add_node(graph, req)
 
             for risk in self.jira.sorted_by_key(req.risks):

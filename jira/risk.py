@@ -47,7 +47,7 @@ class JiraRisk(JiraIssue):
 
     @property
     def stories(self):
-        return [ self.jira.get_issue(story.key) for story in self.links if story.inwardType == 'is mitigated by' and story.type != 'Epic' ]
+        return [ self.jira.get_issue(link.key, link.issue_class) for link in self.links if link.is_story ]
 
     def format_value(self, key):
         return self.rendered_fields.get(self.jira.fields[key]) or ''
