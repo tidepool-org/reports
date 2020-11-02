@@ -2,6 +2,7 @@ import logging
 from typing import List
 
 from .issue import JiraIssue
+from .risk_score import JiraRiskScore
 
 logger = logging.getLogger(__name__)
 
@@ -63,13 +64,23 @@ class JiraRisk(JiraIssue):
             return f"{val['value']} ({self.jira.get_weight(key, val['id'])})"
         return ''
 
-    def color(self, score: str) -> str:
+    def score(self, score: str) -> JiraRiskScore:
         score = (score or '').lower()
         if 'green' in score:
-            return 'green'
+            return JiraRiskScore.GREEN
         elif 'yellow' in score:
-            return 'yellow'
+            return JiraRiskScore.YELLOW
         elif 'red' in score:
+            return JiraRiskScore.RED
+        return JiraRiskScore.UNKNOWN
+
+    def color(self, score: str) -> str:
+        score = self.score(score)
+        if score == JiraRiskScore.GREEN:
+            return 'green'
+        elif score == JiraRiskScore.YELLOW:
+            return 'yellow'
+        elif score == JiraRiskScore.RED:
             return 'red'
         return ''
 
