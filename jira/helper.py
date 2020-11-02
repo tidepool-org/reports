@@ -202,6 +202,7 @@ class JiraHelper():
     @staticmethod
     def prettify_links(text: str) -> str:
         text = re.sub(r"""(<a.+>)(?:https://docs.google.+)(</a>)""", r"""\1Google Document\2""", text)
+        text = re.sub(r"""\[(https://docs.google.+)\|([^]]+)\]""", r"""<a href="\1">Google Document</a>""", text)
         return re.sub(r"""(<a.+>)(?:https://tidepool.atlassian.net/browse/)(\w+-\d+)(</a>)""", r"""\1\2\3""", text)
 
     @staticmethod

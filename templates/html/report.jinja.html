@@ -4,8 +4,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
     <title>{{ config['title'] }} {{ config['subject'] }}</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon"/>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
-    <style>
+    <style type="text/css">
         {%- include basename(config['templates']['style']) -%}
     </style>
 </head>
@@ -33,8 +34,8 @@
             {%- endif -%}
         {%- endmacro -%}
 
-        {%- macro list_stories(stories) -%}
-            <h3>Development Work Tickets</h3>
+        {%- macro list_stories(stories, label) -%}
+            <h3>{{ label }}</h3>
             {%- if stories -%}
                 <table class="table table-bordered table-condensed table-striped table-responsive stories">
                     <thead>
@@ -50,40 +51,44 @@
                             <td class="key">{{ issue_key(story) }}</td>
                             <td class="summary">{{ story.summary }}</td>
                             <td class="tests">
-                                {%- set tests = story.tests|exclude_junk(enforce_versions = True) -%}
-                                {%- if tests -%}
-                                <table class="table table-bordered table-condensed table-striped table-responsive tests">
-                                    <thead>
-                                        <tr>
-                                            <th class="key">Key</th>
-                                            <th class="summary">Summary</th>
-                                            <th class="Status">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {%- for test in tests|sort_by_key -%}
-                                        <tr>
-                                            <td class="key">{{ issue_key(test) }}</td>
-                                            <td class="summary">{{ test.summary }}</td>
-                                            <td class="status">
-                                                {%- if test.status_category == 'Done' -%}
-                                                    {{ passed() }}
-                                                {%- else -%}
-                                                    {{ test.status_category }}
-                                                {%- endif -%}
-                                            </td>
-                                        </tr>
-                                        {%- endfor -%}
-                                    </tbody>
-                                </table>
-                                {%- endif -%}
-                                {%- if story.test_strategy -%}
-                                    {%- if story.status_category == 'Done' -%}
-                                        {{ passed() }}
-                                    {%- elif story.status == 'Blocked' -%}
-                                        {{ blocked() }}
+                                {%- if story.is_story -%}
+                                    {%- set tests = story.tests|exclude_junk(enforce_versions = True) -%}
+                                    {%- if tests -%}
+                                    <table class="table table-bordered table-condensed table-striped table-responsive tests">
+                                        <thead>
+                                            <tr>
+                                                <th class="key">Key</th>
+                                                <th class="summary">Summary</th>
+                                                <th class="Status">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {%- for test in tests|sort_by_key -%}
+                                            <tr>
+                                                <td class="key">{{ issue_key(test) }}</td>
+                                                <td class="summary">{{ test.summary }}</td>
+                                                <td class="status">
+                                                    {%- if test.status_category == 'Done' -%}
+                                                        {{ passed() }}
+                                                    {%- else -%}
+                                                        {{ test.status_category }}
+                                                    {%- endif -%}
+                                                </td>
+                                            </tr>
+                                            {%- endfor -%}
+                                        </tbody>
+                                    </table>
                                     {%- endif -%}
-                                    {{ story.test_strategy|prettify_links|safe }}
+                                    {%- if story.test_strategy -%}
+                                        {%- if story.status_category == 'Done' -%}
+                                            {{ passed() }}
+                                        {%- elif story.status == 'Blocked' -%}
+                                            {{ blocked() }}
+                                        {%- endif -%}
+                                        {{ story.test_strategy|prettify_links|safe }}
+                                    {%- endif -%}
+                                {%- elif story.is_func_requirement -%}
+                                    {{ story.description|prettify_links|safe }}
                                 {%- endif -%}
                             </td>
                         </tr>
@@ -97,8 +102,8 @@
             {%- endif -%}
         {%- endmacro -%}
 
-        {%- macro list_risks(risks) -%}
-            <h3>Risks</h3>
+        {%- macro list_risks(risks, label) -%}
+            <h3>{{ label }}</h3>
             {%- if risks -%}
                 <table class="table table-bordered table-condensed table-striped table-responsive risks">
                     <thead>
@@ -188,8 +193,8 @@
                     <p class="req_description">{{ req.description|prettify_links|safe }}</p>
                 </div>
 
-                {{ list_stories(req.stories|exclude_junk(enforce_versions = True)) }}
-                {{ list_risks(req.risks|exclude_junk(enforce_versions = False)) }}
+                {{ list_stories(req.stories|exclude_junk(enforce_versions = True), 'Development Work Tickets') }}
+                {{ list_risks(req.risks|exclude_junk(enforce_versions = False), 'Risks') }}
             </div>
             {%- endfor -%}
         </div>
@@ -251,7 +256,7 @@
                     </tfoot>
                 </table>
 
-                {{ list_stories(risk.stories|exclude_junk(enforce_versions = True)) }}
+                {{ list_stories(risk.mitigations|exclude_junk(enforce_versions = False), 'Mitigations') }}
             </div>
             {%- endfor -%}
         </div>

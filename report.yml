@@ -79,15 +79,17 @@ html:
     splash1: templates/html/Tidepool Loop iPhone X - Generic Pump.png
     splash2: templates/html/Watch 38mm + Loop Home.png
     logo: templates/html/Tidepool_Logo_Light_Large.png
+    favicon: templates/html/favicon.ico
   templates:
-    report: templates/html/report.html
-    style: templates/html/report.css
+    style: templates/html/report.jinja.css
+    report: templates/html/report.jinja.html
   output:
+    #style: output/report.css # don't copy it to output, it'll be embedded in report.html
     splash1: output/Tidepool Loop iPhone X - Generic Pump.png
     splash2: output/Watch 38mm + Loop Home.png
     logo: output/Tidepool_Logo_Light_Large.png
+    favicon: output/favicon.ico
     report: output/report.html
-    #style: output/report.css # don't copy it to output, it'll be embedded in report.html
   sections:
     requirements: true
     risks: true

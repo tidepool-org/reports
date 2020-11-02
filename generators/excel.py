@@ -206,7 +206,7 @@ class Excel():
         self.bold_format = self.add_format(book, self.config['formats']['bold'])
         self.summary_format = self.add_format(book)
 
-        for sheet_id, sheet in self.config['sheets'].items():
+        for _, sheet in self.config['sheets'].items():
             generator_method = getattr(self.__class__, sheet['generator'])
             generator_method(self, book, sheet)
 
@@ -223,7 +223,7 @@ class Excel():
 
         col = 0
         row = 0
-        for i, item in props['items'].items():
+        for _, item in props['items'].items():
             (this_row, this_col) = xl_cell_to_rowcol(item['position'])
             col = max(col, this_col)
             row = max(row, this_row)
@@ -243,8 +243,6 @@ class Excel():
         report = book.add_worksheet(props['name'])
         columns = Columns(props['columns'])
         self.set_headings(report, columns)
-
-        req_format = self.add_format(book)
 
         # requirements, sorted by requirement ID
         row = 1
@@ -410,30 +408,9 @@ class Excel():
             log_issue(risk)
             risk_row = row
 
-            # examine all issues that are linked to this risk
-            logger.debug(f'examining {risk.key} links')
-            mitigations = set()
-            for issue in self.jira.exclude_junk(risk.links, enforce_versions = False):
-                logger.debug(f'looking at {issue.type} {issue.key}')
-                if issue.is_instruction: # if it's an IFU, then use it as-is regardless of link type (mitigates vs. relates)
-                    logger.debug(f'using instruction {issue.key}')
-                    log_issue(issue, 1)
-                    mitigations.add(issue)
-                elif issue.is_story and issue.is_mitigated_by:
-                    count = len(mitigations)
-                    for func_req in issue.defined_by:
-                        logger.debug(f'using functional requirement {func_req.key} instead of {issue.key}')
-                        log_issue(func_req, 1)
-                        mitigations.add(func_req)
-                    if count == len(mitigations): # no functional requirements found
-                        logger.debug(f'using {issue.key}, no functional requirements found')
-                        log_issue(func_req, 1)
-                        mitigations.add(issue)
-
-            # now list them all in the sheet
-            logger.debug(f'adding {len(mitigations)} mitigations')
+            # list all mitigations in the sheet
             story_row = row
-            for mitigation in self.jira.sorted_by_key(mitigations):
+            for mitigation in self.jira.sorted_by_key(risk.mitigations):
                 self.write_key_and_summary(report, story_row, columns['mitigation_key'].column, mitigation)
                 story_row += 1
 

@@ -1,4 +1,9 @@
+import logging
+from typing import List
+
 from .issue import JiraIssue
+
+logger = logging.getLogger(__name__)
 
 class JiraRisk(JiraIssue):
     @property
@@ -67,3 +72,25 @@ class JiraRisk(JiraIssue):
         elif 'red' in score:
             return 'red'
         return ''
+
+    @property
+    def mitigations(self) -> List[JiraIssue]:
+        mitigations = set() # only list unique mitigations
+        logger.debug(f'examining {self.key} links')
+        for issue in self.jira.exclude_junk(self.links, enforce_versions = False):
+            logger.debug(f'looking at {issue.type} {issue.key} {issue.url}')
+            if (issue.is_story and issue.is_mitigated_by) or issue.is_instruction:
+                if len(issue.defined_by) == 0: # has no functional requirements
+                    logger.debug(f'showing issue {issue.key} directly, no new functional requirements were found')
+                    mitigations.add(issue)
+                else:
+                    for func_req in issue.defined_by:
+                        logger.debug(f'showing functional requirement {func_req.key} instead of {issue.key}')
+                        logger.debug(f'--> added {func_req.type} {func_req.key} {func_req.url}')
+                        mitigations.add(func_req)
+            elif issue.is_story or issue.is_instruction:
+                logger.debug(f'showing issue {issue.key} directly')
+                mitigations.add(issue)
+            else:
+                logger.debug(f'skipping issue {issue.key} because it is not a story or instruction')
+        return list(mitigations)
