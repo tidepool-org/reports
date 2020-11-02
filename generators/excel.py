@@ -418,13 +418,15 @@ class Excel():
 
         # risks, sorted by harm
         total_risks = 0
-        total_scores = { JiraRiskScore.GREEN: 0, JiraRiskScore.YELLOW: 0, JiraRiskScore.RED: 0, JiraRiskScore.UNKNOWN: 0 }
+        total_initial_scores = { JiraRiskScore.GREEN: 0, JiraRiskScore.YELLOW: 0, JiraRiskScore.RED: 0, JiraRiskScore.UNKNOWN: 0 }
+        total_residual_scores = { JiraRiskScore.GREEN: 0, JiraRiskScore.YELLOW: 0, JiraRiskScore.RED: 0, JiraRiskScore.UNKNOWN: 0 }
         row = 1
         for risk in self.jira.sorted_by_harm(self.jira.exclude_junk(self.jira.risks.values(), enforce_versions = False)):
             log_issue(risk)
             risk_row = row
             total_risks += 1
-            total_scores[risk.score(risk.residual_risk)] += 1
+            total_initial_scores[risk.score(risk.initial_risk)] += 1
+            total_residual_scores[risk.score(risk.residual_risk)] += 1
 
             # list all mitigations in the sheet
             story_row = row
@@ -456,8 +458,10 @@ class Excel():
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
         logger.info(f'total of {total_risks} risks')
-        for key, count in total_scores.items():
-            logger.info(f'total of {key.name}: {total_scores[key]} ({round(float(total_scores[key]) / total_risks * 100, 2)}%) risks')
+        for key, count in total_initial_scores.items():
+            logger.info(f'total of initial risk {key.name}: {count} ({round(float(count) / total_risks * 100, 2)}%) risks')
+        for key, count in total_residual_scores.items():
+            logger.info(f'total of residual risk {key.name}: {count} ({round(float(count) / total_risks * 100, 2)}%) risks')
         logger.info(f"done adding report sheet '{props['name']}'")
 
     #
