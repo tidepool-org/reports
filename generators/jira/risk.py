@@ -17,6 +17,10 @@ class JiraRisk(JiraIssue):
 
     @property
     def hazard(self):
+        return self.fields.get(self.jira.fields['hazard']) or ''
+
+    @property
+    def hazard_category(self):
         return self.format_value('hazard_category')
 
     @property

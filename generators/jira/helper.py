@@ -231,4 +231,4 @@ class JiraHelper():
 
     @staticmethod
     def sorted_by_harm(issues: List[JiraIssue]) -> List[JiraIssue]:
-        return sorted(issues, key=lambda issue: f'{issue.harm}:{issue.hazard}')
+        return sorted(issues, key=lambda issue: f'{issue.harm}:{issue.hazard_category}')

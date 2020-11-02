@@ -24,6 +24,7 @@ jira:
     source: customfield_10115
     sequence_of_events: customfield_10144
     harm: customfield_10089
+    hazard: customfield_10090
     hazard_category: customfield_10095
     initial_severity: customfield_10085
     initial_probability: customfield_10086
@@ -210,7 +211,7 @@ excel:
         - { width: 25, key: source,               label: 'Source' }
         - { width: 30, key: sequence,             label: 'Sequence of Events' }
         - { width: 25, key: harm,                 label: 'Harm' }
-        - { width: 13, key: hazard,               label: 'Hazard Category' }
+        - { width: 13, key: hazard_category,      label: 'Hazard Category' }
         - { width: 12, key: initial_severity,     label: 'Initial Severity' }
         - { width: 12, key: initial_probability,  label: 'Initial Probability' }
         - { width: 11, key: initial_risk,         label: 'Initial Risk Score' }
@@ -229,7 +230,8 @@ excel:
         - { width: 25, key: source,               label: 'Source' }
         - { width: 30, key: sequence,             label: 'Sequence of Events' }
         - { width: 25, key: harm,                 label: 'Harm' }
-        - { width: 13, key: hazard,               label: 'Hazard Category' }
+        - { width: 25, key: hazard,               label: 'Hazard' }
+        - { width: 13, key: hazard_category,      label: 'Hazard Category' }
         - { width: 12, key: initial_severity,     label: 'Initial Severity' }
         - { width: 12, key: initial_probability,  label: 'Initial Probability' }
         - { width: 11, key: initial_risk,         label: 'Initial Risk Score' }
