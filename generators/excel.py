@@ -7,6 +7,8 @@ from xlsxwriter.utility import xl_range, xl_cell_to_rowcol, xl_rowcol_to_cell
 from enum import IntEnum
 from html.parser import HTMLParser
 
+from .jira.risk_score import JiraRiskScore
+
 logger = logging.getLogger(__name__)
 
 def log_issue(issue, indent: int = 0):
@@ -245,6 +247,8 @@ class Excel():
         self.set_headings(report, columns)
 
         # requirements, sorted by requirement ID
+        total_requirements = 0
+        total_verified = 0
         row = 1
         for req in self.jira.sorted_by_id(self.jira.exclude_junk(self.jira.func_requirements.values(), enforce_versions = False)):
             log_issue(req)
@@ -254,19 +258,26 @@ class Excel():
             story_row = req_row
             for story in self.jira.sorted_by_key(self.jira.exclude_junk(req.defines, enforce_versions = True)):
                 log_issue(story, 1)
+                verified = False
 
                 # tests, sorted by issue key
                 test_row = story_row
                 for test in self.jira.sorted_by_key(story.tests):
                     log_issue(test, 2)
                     self.write_key_and_summary(report, test_row, columns['test_key'].column, test)
+                    if test.is_done:
+                        verified = True
                     test_row += 1
                 if test_row == story_row:
                     self.write_status(report, story_row, columns['test_status'].column, story)
+                    if story.is_done:
+                        verified = True
 
                 row = max(story_row + 1, test_row) - 1
                 self.write_key_and_summary(report, story_row, columns['story_key'].column, story, end_row = row)
                 story_row = row + 1
+                if verified:
+                    total_verified += 1
 
             # risks, sorted by issue key
             risk_row = req_row
@@ -281,10 +292,13 @@ class Excel():
             self.write_html(report, req_row, columns['req_description'].column, req.description, end_row = row)
             self.merge(report, req_row, columns['gap'].column, end_row = row)
             row += 1
+            total_requirements += 1
 
         report.ignore_errors({ 'number_stored_as_text': xl_range(0, 0, row - 1, columns.last) })
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
+        logger.info(f'total of {total_requirements} requirements')
+        logger.info(f'total of {total_verified} ({round(float(total_verified) / total_requirements * 100, 2)}%) verified requirements')
         logger.info(f"done adding report sheet '{props['name']}'")
 
 
@@ -403,10 +417,14 @@ class Excel():
         self.set_headings(report, columns)
 
         # risks, sorted by harm
+        total_risks = 0
+        total_scores = { JiraRiskScore.GREEN: 0, JiraRiskScore.YELLOW: 0, JiraRiskScore.RED: 0, JiraRiskScore.UNKNOWN: 0 }
         row = 1
         for risk in self.jira.sorted_by_harm(self.jira.exclude_junk(self.jira.risks.values(), enforce_versions = False)):
             log_issue(risk)
             risk_row = row
+            total_risks += 1
+            total_scores[risk.score(risk.residual_risk)] += 1
 
             # list all mitigations in the sheet
             story_row = row
@@ -437,6 +455,9 @@ class Excel():
         self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['high'], 'format': high_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
+        logger.info(f'total of {total_risks} risks')
+        for key, count in total_scores.items():
+            logger.info(f'total of {key.name}: {total_scores[key]} ({round(float(total_scores[key]) / total_risks * 100, 2)}%) risks')
         logger.info(f"done adding report sheet '{props['name']}'")
 
     #
