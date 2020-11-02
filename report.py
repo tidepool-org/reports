@@ -11,8 +11,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
-from generators.jira import JiraHelper
-from generators import Html, Pdf, Excel, GraphViz
+from generators import JiraHelper, Html, Pdf, Excel, GraphViz
 
 #logging.basicConfig(filename='report.log', filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s [%(name)s] %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
 logging.config.fileConfig('logging.conf')

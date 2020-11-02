@@ -1,3 +1,4 @@
+from .jira import JiraHelper
 from .html import Html
 from .pdf import Pdf
 from .excel import Excel
