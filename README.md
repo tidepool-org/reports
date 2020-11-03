@@ -29,20 +29,21 @@ Go to your [Atlassian account security settings](https://id.atlassian.com/manage
 $ export JIRA_USERNAME={username}
 $ export JIRA_API_TOKEN={token}
 $ python3 report.py --help
-2020-10-09T22:42:40 INFO [__main__] Tidepool Report Generator v0.1
-2020-10-09T22:42:40 INFO [__main__] parsing arguments
-usage: report.py [-h] [--config CONFIG] [--html] [--pdf] [--excel] [--graph]
+2020-11-02T19:55:53 INFO [report] Tidepool Report Generator v0.1
+usage: report.py [-h] [--config CONFIG] [--html] [--pdf] [--excel] [--graph] [--refresh] [--cache] [--zip]
 
 Generate Verification Test Report
 
 optional arguments:
-  -h, --help       show this help message and exit
-  --config CONFIG  configuration file (default: report.yml)
-  --html           generate HTML output
-  --pdf            generate PDF output from HTML
-  --excel          generate XLSX output
-  --graph          generate graph output
-  --zip            combine output files into a ZIP file
+  -h, --help           show this help message and exit
+  --config CONFIG      configuration file (default: report.yml)
+  --html               generate HTML output
+  --pdf                generate PDF output from HTML
+  --excel              generate XLSX output
+  --graph              generate graph output
+  --refresh            force a refresh of cached data
+  --cache, --no-cache  cache data
+  --zip, --no-zip      combine output files into a ZIP file
 ```
 
 ## Development
