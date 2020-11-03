@@ -12,21 +12,13 @@ before_deploy:
 - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
 - git tag $TRAVIS_TAG
 deploy:
-  - provider: releases
-    api_key:
-      secure: egMsjlsQ0nP3pOxePWS2y992ngncBH9n36CaDyPillttPV3QImc+CkSHZLSaE98n5OesYyUPAgD8k/LPDQV/QF6miPN4N6dlD82BBsw4GMxeHBkETeTIKQUTK4mgbj0tw9a6V7vxurNeqxzZy3WBaWXTh7s8n31K7f196S46VjJkjvghpuR4m3j4KbBifiQVDx9IHltR2UUkpkaDkGelPdH2TkGw2ac93qL3aICURe7VF8AUcEnsL9bWZ7aFEwPpc9XrvylQVI1yiE4iTpKvoovWN6xJEPKLOdh9OtTQh7BVxdTIgokNbnoeCf5yZtKCXCljhAq83rZeEQDQAL1y2RCDGrW8osF8dgUoanyfAKrKn0TdvKfE7R+Halyg2YO8smBrSwwbJYfmyh0EJ+PCTmZznq7CzdReh1hDSv0HXePWJ5P71v+3+uko1TqQWb8MxEcgJa84zaH4rQ5RsAHKXlQoObxSVnzY5e0qPfLyQ78HLa56j+3O8JJnQJY6lu4EcZKif68fJWypkhTRVMcoOfBf1wWxiSGZ/1L8BFR8jPAFOybQwXX4oQ7CTKE3KsZToVR2m6E4Y3EjBP5TwniqwDkb63nW6hifw9fHgqaNBUWHNQejCwcp6VjE3rMIMzhXhx9UzCNMeF4u4PjtAdygeALiBWe2Tx45yPIpOBFuKBk=
-    skip_cleanup: true
-    file_glob: true
-    file:
-    - "$TRAVIS_BUILD_DIR/output/*"
-    on:
-      repo: tidepool-org/reports
-      branch: main
-  - provider: s3
-    access_key_id:
-      secure: kRwz9Hey8U0wtXQZ6/rrks9+tmLl2ex8+lVDGMRD10RIsetcjJwZRGmcUSVl2yufHOUXBeUZpkHnSRMPKxNRAlLXq+aGofkzNPirrj2rTnE+qEgMOaKOt6x9oQZZ9UMt89GP8PJ+PBK3+Yb0cT+DsMtRSMkJ6piqrHu49yQL+iqT/o01YvtIkBrQgCL2RWBSAlzBy7m3hY3APwoYd28JkTZs1BAr1XyZpzUcp7GafqjaQkaAx5/jXXcyfnqsNB5Sn2HtkVSU2QAlSUbezFlCcIY22jVzyRO3zHvdkj6Mgs/0ulOL5G8TGFr3/GM187/uH/SQDRTjPr012ktONLSiXCw5KTdMCGs+6i21B2PqqT404X3b9KCEWYwqkgLO77gFlcbCYIo6oZR0gtoDuEHHvGsZIxBYT55bvAGY8Wolt5q0V9/ezO+evUUG6MQHw5yzl+EwRx9toW9xJ2PipGUthhYk8HBVnLkF/eR2UW1neUl4hveY8VhbFK0StGEc9/H/uyA0HhvcT2wL2prX46H9RkfAwrXgHEyvle6nypWnZCa4Iu4AWQKCp5jiSfgJmswomw2sEq83Bgk85OjTHU4047gUZhe3pCNSdnoeGqwjHDIpLCqR/3xU/CMOpR47aVIOJE2Iqjd/ZEeaLsSlKhx9b7HffaGEFG5jwC/fc82miYY=
-    secret_access_key:
-      secure: ZGCtHlTI2ajZmIF5nr9GyV3Akh6FG86cWwVyZa/CCEC5LD0SFT0kDAiF7kGgQQYW1VTZWqMX+1y+C/Xyyli1L8yMo9pn+yPJ/jItyb1701HXMJtn3J8kWtvjAYGETBjjCaGt2nwwPKEgXVDlqATeK7dQfjuiBQA+qiRHGW/hoZTicECdEsPv8K1muv+IQ+dO5KzQ5/LnUX57w3NtgjKJXg+ERGu69SNlMt1xUAQzjw7tKw1GeREkIWYrBme8dSgNfk37cOnhMSO0qXw5r+SgeBqDGhtmKOwAvbl23A6TaKXVRwfVCBKr/feGyW/h5QNvQ9hjK0L2+xoREMRmp5gRwzRZa6D08VFXE7AV6ei3fMzPGl9PWSunj7NlmIBcVf7At79inrI7Sx0ID9LMLVchNxVNesb92kDi4GOuwtfGkcYD3G9yUkxy2qEqAQhjdQPSN+kQSC8g46SrbebcbxtFidp2B90xl9DNW/Zg8OruCZ1iofDLtFy3c5o0B5S9bWBLWGuefXmBkoQYiZhLs6KUFVQXIki3L72qZvabYFHAFMIbu/ugrCaBLncUBqeWbV7Ufr5GLU7TgEV4IhK8000jvQ8c3YnfoihX2f0seQatBLBacz0dK8hZrgFkhPqWjcX8CtRrQ1iR8cRjjt+sZlXPfX/EL51mfBZh9+fyRqsLyYU=
-    skip_cleanup: true
-    bucket: "tidepool-loopworkspace-build"
-    glob: "$TRAVIS_BUILD_DIR/output/report.xlsx"
+  provider: releases
+  api_key:
+    secure: egMsjlsQ0nP3pOxePWS2y992ngncBH9n36CaDyPillttPV3QImc+CkSHZLSaE98n5OesYyUPAgD8k/LPDQV/QF6miPN4N6dlD82BBsw4GMxeHBkETeTIKQUTK4mgbj0tw9a6V7vxurNeqxzZy3WBaWXTh7s8n31K7f196S46VjJkjvghpuR4m3j4KbBifiQVDx9IHltR2UUkpkaDkGelPdH2TkGw2ac93qL3aICURe7VF8AUcEnsL9bWZ7aFEwPpc9XrvylQVI1yiE4iTpKvoovWN6xJEPKLOdh9OtTQh7BVxdTIgokNbnoeCf5yZtKCXCljhAq83rZeEQDQAL1y2RCDGrW8osF8dgUoanyfAKrKn0TdvKfE7R+Halyg2YO8smBrSwwbJYfmyh0EJ+PCTmZznq7CzdReh1hDSv0HXePWJ5P71v+3+uko1TqQWb8MxEcgJa84zaH4rQ5RsAHKXlQoObxSVnzY5e0qPfLyQ78HLa56j+3O8JJnQJY6lu4EcZKif68fJWypkhTRVMcoOfBf1wWxiSGZ/1L8BFR8jPAFOybQwXX4oQ7CTKE3KsZToVR2m6E4Y3EjBP5TwniqwDkb63nW6hifw9fHgqaNBUWHNQejCwcp6VjE3rMIMzhXhx9UzCNMeF4u4PjtAdygeALiBWe2Tx45yPIpOBFuKBk=
+  skip_cleanup: true
+  file_glob: true
+  file:
+  - "$TRAVIS_BUILD_DIR/output/*"
+  on:
+    repo: tidepool-org/reports
+    branch: main
