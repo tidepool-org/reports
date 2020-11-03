@@ -35,7 +35,8 @@ class JiraHelper():
             username=self.config['username'],
             password=self.config['api_token'])
         self.cache_folder = self.config['cache']['folder']
-        os.makedirs(self.cache_folder, exist_ok=True)
+        self.cache_ignore = self.config['refresh_cache']
+        os.makedirs(self.cache_folder, exist_ok = True)
         self.cache_refresh = int(self.config['cache']['refresh'])
         self.parameters = self.config['parameters']
         self.queries = self.config['queries']
@@ -185,6 +186,8 @@ class JiraHelper():
         return { issue.key: issue for issue in [ issue_type(issue, self) for issue in issues ] }
 
     def read_cache(self, cache_key: str) -> dict:
+        if self.cache_ignore:
+            return None
         cache_file = os.path.join(self.cache_folder, f"{cache_key}.json")
         if os.path.exists(cache_file):
             if os.stat(cache_file).st_mtime + self.cache_refresh >= time.time():

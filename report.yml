@@ -5,16 +5,16 @@ jira:
   # api_token: ...
   parameters:
     fix_version: 'FDA 510(k) Sub'
-    component: '510(k)'
-    exclude: ExcludeFromReport
+    include_component: 'iAGC'
+    exclude_component: ExcludeFromReport
   queries:
-    func_requirements: project=TLFR AND issuetype="Functional Requirement" AND (component NOT IN ({exclude}) OR component IS EMPTY)
-    user_requirements: project=TLFR AND issuetype="User Requirement" AND (component NOT IN ({exclude}) OR component IS EMPTY)
-    risks: project=TLR AND issuetype IN (Story, Task) AND (component NOT IN ({exclude}) OR component IS EMPTY)
-    epics: project=LOOP AND fixVersion="{fix_version}" AND issuetype="Epic" AND (component NOT IN ({exclude}) OR component is EMPTY)
-    stories: project=LOOP AND (fixVersion="{fix_version}" OR component="{component}") AND issuetype IN (Story, Bug, Task, Sub-task) AND (component NOT IN ({exclude}) OR component IS EMPTY)
-    tests: project=LOOP AND issuetype IN ("Test", "Test Execution", "Sub Test Execution") AND (component NOT IN ({exclude}) OR component IS EMPTY)
-    instructions: project=IFU AND (component NOT IN ({exclude}) OR component IS EMPTY)
+    func_requirements: project=TLFR AND issuetype="Functional Requirement" AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
+    user_requirements: project=TLFR AND issuetype="User Requirement" AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
+    risks: project=TLR AND issuetype IN (Story, Task) AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
+    epics: project=LOOP AND fixVersion="{fix_version}" AND issuetype="Epic" AND (component NOT IN ({exclude_component}) OR component is EMPTY OR component IN ({include_component}))
+    stories: project=LOOP AND (fixVersion="{fix_version}" OR component="{include_component}") AND issuetype IN (Story, Bug, Task, Sub-task) AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
+    tests: project=LOOP AND issuetype IN ("Test", "Test Execution", "Sub Test Execution") AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
+    instructions: project=IFU AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
   fields:
     epic_key: customfield_10014
     functional_requirements: customfield_10132
@@ -44,7 +44,7 @@ jira:
     test:                { ids: [ 10016, 10019, 10021 ], projects: [ LOOP ] }
     func_requirement:    { ids: [ 10024 ], projects: [ TLFR ] }
     user_requirement:    { ids: [ 10027 ], projects: [ TLFR ] }
-    risk:                { ids: [ 10001 ], projects: [ TLR ] } # yes, same ID as story
+    risk:                { ids: [ 10001, 10002 ], projects: [ TLR ] } # yes, same as story
     external_mitigation: { ids: [ 10026 ], projects: [ TLR ] }
     instruction:         { ids: [ 10001, 10002 ], projects: [ IFU ] } # yes, same as story
   link_types:
@@ -63,6 +63,16 @@ jira:
     folder: cache
     refresh: 3600
   exclude_fields: [ project, labels, comment, attachment, creator, reporter, assignee, watches, votes, worklog, workratio, progress, aggregateprogress, timetracking, timeestimate, aggregatetimeestimate, aggregatetimeoriginalestimate, timespent, aggregatetimespent, issuerestriction, lastViewed, customfield_10073, customfield_10026, customfield_10021, customfield_10038 ]
+
+tests:
+  cache:
+    folder: cache
+    refresh: 3600
+  reports:
+    ui_tests:
+      url: https://tidepool-loopworkspace-build.s3-us-west-2.amazonaws.com/loopUITests.xml
+    unit_tests:
+      url: static/unit_tests.xml # awaiting URL in S3 bucket...
 
 zip:
   output: output/report.zip
@@ -241,6 +251,14 @@ excel:
         - { width: 12, key: residual_probability, label: 'Residual Probability' }
         - { width: 11, key: residual_risk,        label: 'Residual Risk Score' }
         - { width: 10, key: benefit,              label: 'Benefit outweigh Risks? Y/N' }
+    tests:
+      generator: add_tests_sheet # method name in excel.py
+      name: 'Automated Tests'
+      columns:
+        - { width: 60, key: test_suite,           label: 'Test Suite' }
+        - { width: 60, key: test_case,            label: 'Test Case' }
+        - { width: 8, key: time,                  label: 'Time' }
+        - { width: 11, key: status,               label: 'Status' }
     # epics:
     #   generator: add_epics_sheet # method name in excel.py
     #   name: All Development Tickets

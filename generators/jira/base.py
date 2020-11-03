@@ -100,7 +100,7 @@ class JiraBase(ABC):
 
     @property
     def is_junk(self) -> bool:
-        return self.resolution in [ 'Duplicate', "Won't Do" ]
+        return self.resolution in [ 'Duplicate', "Won't Do", 'Deprecated', 'Cannot Reproduce' ]
 
     @property
     def is_done(self) -> bool:

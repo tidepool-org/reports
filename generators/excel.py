@@ -1,6 +1,7 @@
 import logging
 from typing import Tuple, List, NamedTuple, Optional
 from functools import cached_property
+from operator import attrgetter
 import re
 import xlsxwriter
 from xlsxwriter.utility import xl_range, xl_cell_to_rowcol, xl_rowcol_to_cell
@@ -149,8 +150,9 @@ class Columns(dict):
         return [ column for key, column in self.items() if isinstance(key, str) and column.key in names ]
 
 class Excel():
-    def __init__(self, jira, config: dict):
+    def __init__(self, jira, test_reports, config: dict):
         self.jira = jira
+        self.test_reports = test_reports
         self.config = config
 
     @property
@@ -281,7 +283,7 @@ class Excel():
 
             # risks, sorted by issue key
             risk_row = req_row
-            for risk in self.jira.sorted_by_key(req.risks):
+            for risk in self.jira.sorted_by_key(self.jira.exclude_junk(req.risks, enforce_versions = False)):
                 log_issue(risk, 1)
                 self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk)
                 risk_row += 1
@@ -298,7 +300,7 @@ class Excel():
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
         logger.info(f'total of {total_requirements} requirements')
-        logger.info(f'total of {total_verified} ({round(float(total_verified) / total_requirements * 100, 2)}%) verified requirements')
+        logger.info(f'total of {self.percentage(total_requirements, total_verified)} verified requirements')
         logger.info(f"done adding report sheet '{props['name']}'")
 
 
@@ -460,14 +462,41 @@ class Excel():
         self.set_header_and_footer(report)
         logger.info(f'total of {total_risks} risks')
         for key, count in total_initial_scores.items():
-            logger.info(f'total of initial risk {key.name}: {count} ({round(float(count) / total_risks * 100, 2)}%) risks')
+            logger.info(f'total of initial risk {key.name}: {self.percentage(total_risks, count)} risks')
         for key, count in total_residual_scores.items():
-            logger.info(f'total of residual risk {key.name}: {count} ({round(float(count) / total_risks * 100, 2)}%) risks')
+            logger.info(f'total of residual risk {key.name}: {self.percentage(total_risks, count)} risks')
+        logger.info(f"done adding report sheet '{props['name']}'")
+
+    #
+    # tests
+    #
+    def add_tests_sheet(self, book: xlsxwriter.Workbook, props: dict):
+        logger.info(f"adding report sheet '{props['name']}'")
+        report = book.add_worksheet(props['name'])
+        columns = Columns(props['columns'])
+        self.set_headings(report, columns)
+
+        # tests
+        row = 1
+        for test_report in self.test_reports.reports.values():
+            for test in sorted(test_report.test_cases, key=attrgetter('suite', 'name')):
+                self.write(report, row, columns['test_suite'].column, test.suite)
+                self.write(report, row, columns['test_case'].column, test.name)
+                self.write(report, row, columns['time'].column, test.time)
+                self.write(report, row, columns['status'].column, self.passed if test.status else '', self.bold_format)
+                row += 1
+
+        self.set_paper(report, row, len(columns))
+        self.set_header_and_footer(report)
         logger.info(f"done adding report sheet '{props['name']}'")
 
     #
     # helper methods
     #
+
+    def percentage(self, total, count) -> str:
+        total = total if total > 0 else 1
+        return f'{count} ({round(float(count) / total * 100, 2)}%)'
 
     def add_format(self, book: xlsxwriter.Workbook, *formats: List[dict]):
         format = {**self.config['formats']['base']}
