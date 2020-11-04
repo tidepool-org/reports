@@ -11,7 +11,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
-from generators import JiraHelper, TestReports, Html, Pdf, Excel, GraphViz
+from generators import JiraHelper, TestReports, Html, Pdf, Excel, GraphViz, D3js
 
 #logging.basicConfig(filename='report.log', filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s [%(name)s] %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
 logging.config.fileConfig('logging.conf')
@@ -39,6 +39,7 @@ def main():
     parser.add_argument('--pdf', action='store_true', help='generate PDF output from HTML')
     parser.add_argument('--excel', action='store_true', help='generate XLSX output')
     parser.add_argument('--graph', action='store_true', help='generate graph output')
+    parser.add_argument('--d3js', action='store_true', help='generate D3.js output')
 
     parser.add_argument('--refresh', action='store_true', help='force a refresh of cached data')
     parser.add_argument('--cache', '--no-cache', dest='cache', default=True, action=NegateAction, nargs=0, help='cache data')
@@ -66,6 +67,10 @@ def main():
     if args.graph:
         config['graphviz']['generated'] = generated
         files.extend(GraphViz(jira, config['graphviz']).generate())
+
+    if args.d3js:
+        config['d3js']['generated'] = generated
+        files.extend(D3js(jira, config['d3js']).generate())
 
     if args.pdf:
         config['pdf']['generated'] = generated

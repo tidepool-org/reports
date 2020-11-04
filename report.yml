@@ -285,3 +285,14 @@ graphviz:
       engine: dot
       format: svg
       graph: output/report_by_epics
+
+d3js:
+  title: Tidepool Loop 1.0
+  subject: Interactive Tracer
+  images:
+    favicon: templates/html/favicon.ico
+  templates:
+    report: templates/d3js/graph.jinja.html
+  output:
+    report: output/graph.html
+    favicon: output/favicon.ico
