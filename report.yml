@@ -61,13 +61,13 @@ jira:
     defines:    { id: 10108 }
   cache:
     folder: cache
-    refresh: 3600
+    refresh: 21600
   exclude_fields: [ project, labels, comment, attachment, creator, reporter, assignee, watches, votes, worklog, workratio, progress, aggregateprogress, timetracking, timeestimate, aggregatetimeestimate, aggregatetimeoriginalestimate, timespent, aggregatetimespent, issuerestriction, lastViewed, customfield_10073, customfield_10026, customfield_10021, customfield_10038 ]
 
 tests:
   cache:
     folder: cache
-    refresh: 3600
+    refresh: 21600
   reports:
     ui_tests:
       url: https://tidepool-loopworkspace-build.s3-us-west-2.amazonaws.com/loopUITests.xml
@@ -289,10 +289,20 @@ graphviz:
 d3js:
   title: Tidepool Loop 1.0
   subject: Interactive Tracer
-  images:
-    favicon: templates/html/favicon.ico
-  templates:
-    report: templates/d3js/graph.jinja.html
-  output:
-    report: output/graph.html
-    favicon: output/favicon.ico
+  graphs:
+    collapsible-tree:
+      images:
+        favicon: templates/html/favicon.ico
+      templates:
+        report: templates/d3js/collapsible-tree.jinja.html
+      output:
+        report: output/collapsible-tree.html
+        favicon: output/favicon.ico
+    radial-tidy-tree:
+      images:
+        favicon: templates/html/favicon.ico
+      templates:
+        report: templates/d3js/radial-tidy-tree.jinja.html
+      output:
+        report: output/radial-tidy-tree.html
+        favicon: output/favicon.ico

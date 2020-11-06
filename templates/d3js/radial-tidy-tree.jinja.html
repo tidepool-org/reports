@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <title>{{ config['title'] }} {{ config['subject'] }}</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script>
+        const graph = {{ nodes|safe }}
+    </script>
+</head>
+<body>
+    <svg width="8000" height="8000">
+    </svg>
+    <script>
+        function autoBox() {
+            const bbox = this.getBBox();
+            return [ bbox.x, bbox.y, bbox.width, bbox.height ];
+        }
+
+        const svg = d3.select("svg");
+        const radius = svg.attr("width") / 2;
+
+        const tree = d3.tree()
+            .size([2 * Math.PI, radius])
+            .separation((a, b) => (a.parent == b.parent ? 1 : 2) / a.depth)
+        const root = tree(d3.hierarchy(graph));
+
+        svg.append("g")
+            .attr("fill", "none")
+            .attr("stroke", "#555")
+            .attr("stroke-opacity", 0.4)
+            .attr("stroke-width", 1.5)
+            .selectAll("path")
+            .data(root.links())
+            .join("path")
+            .attr("d", d3.linkRadial()
+                .angle(d => d.x)
+                .radius(d => d.y));
+        
+        svg.append("g")
+            .selectAll("circle")
+            .data(root.descendants())
+            .join("circle")
+            .attr("transform", d => `
+                rotate(${d.x * 180 / Math.PI - 90})
+                translate(${d.y},0)
+            `)
+            .attr("fill", d => d.children ? "#555" : "#999")
+            .attr("r", 2.5);
+
+        svg.append("g")
+            .attr("font-family", "sans-serif")
+            .attr("font-size", 10)
+            .attr("stroke-linejoin", "round")
+            .attr("stroke-width", 3)
+            .selectAll("text")
+            .data(root.descendants())
+            .join("text")
+            .attr("transform", d => `
+                rotate(${d.x * 180 / Math.PI - 90}) 
+                translate(${d.y},0) 
+                rotate(${d.x >= Math.PI ? 180 : 0})
+            `)
+            .attr("dy", "0.31em")
+            .attr("x", d => d.x < Math.PI === !d.children ? 6 : -6)
+            .attr("text-anchor", d => d.x < Math.PI === !d.children ? "start" : "end")
+            .text(d => d.data.name)
+            .clone(true).lower()
+            .attr("stroke", "white");
+
+        svg.attr("viewBox", autoBox);
+    </script>
+</body>
+</html>

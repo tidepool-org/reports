@@ -79,7 +79,7 @@ def main():
     if args.zip:
         logger.info(f"generating ZIP file {config['zip']['output']} from {files}")
         with ZipFile(config['zip']['output'], mode='w', compression=ZIP_DEFLATED) as zip:
-            for file in files:
+            for file in set(files):
                 zip.write(file, arcname=os.path.basename(file))
 
     logger.debug(f"missed {len(jira.missed)}: {jira.missed.keys()}")
