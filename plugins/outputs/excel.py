@@ -8,7 +8,7 @@ from xlsxwriter.utility import xl_range, xl_cell_to_rowcol, xl_rowcol_to_cell
 from enum import IntEnum
 from html.parser import HTMLParser
 
-from .jira.risk_score import JiraRiskScore
+import plugins.output
 
 logger = logging.getLogger(__name__)
 
@@ -149,11 +149,11 @@ class Columns(dict):
     def find_all(self, *names: List[str]) -> List[Column]:
         return [ column for key, column in self.items() if isinstance(key, str) and column.key in names ]
 
-class Excel():
-    def __init__(self, jira, test_reports, config: dict):
-        self.jira = jira
-        self.test_reports = test_reports
-        self.config = config
+class Excel(plugins.output.OutputGenerator):
+    key = 'excel'
+    flag = '--excel'
+    description = 'generate Excel output'
+    _alias_ = 'Excel'
 
     @property
     def generated_date(self):
@@ -278,8 +278,9 @@ class Excel():
                 row = max(story_row + 1, test_row) - 1
                 self.write_key_and_summary(report, story_row, columns['story_key'].column, story, end_row = row)
                 story_row = row + 1
-                if verified:
-                    total_verified += 1
+
+            if verified:
+                total_verified += 1
 
             # risks, sorted by issue key
             risk_row = req_row
@@ -420,8 +421,8 @@ class Excel():
 
         # risks, sorted by harm
         total_risks = 0
-        total_initial_scores = { JiraRiskScore.GREEN: 0, JiraRiskScore.YELLOW: 0, JiraRiskScore.RED: 0, JiraRiskScore.UNKNOWN: 0 }
-        total_residual_scores = { JiraRiskScore.GREEN: 0, JiraRiskScore.YELLOW: 0, JiraRiskScore.RED: 0, JiraRiskScore.UNKNOWN: 0 }
+        total_initial_scores = self.jira.risk_scores
+        total_residual_scores = self.jira.risk_scores
         row = 1
         for risk in self.jira.sorted_by_harm(self.jira.exclude_junk(self.jira.risks.values(), enforce_versions = False)):
             log_issue(risk)

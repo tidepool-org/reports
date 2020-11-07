@@ -1,0 +1,19 @@
+title: Tidepool Loop 1.0
+subject: Interactive Tracer
+graphs:
+  collapsible-tree:
+    images:
+      favicon: templates/html/favicon.ico
+    templates:
+      report: templates/d3js/collapsible-tree.jinja.html
+    output:
+      report: output/collapsible-tree.html
+      favicon: output/favicon.ico
+  radial-tidy-tree:
+    images:
+      favicon: templates/html/favicon.ico
+    templates:
+      report: templates/d3js/radial-tidy-tree.jinja.html
+    output:
+      report: output/radial-tidy-tree.html
+      favicon: output/favicon.ico

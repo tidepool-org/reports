@@ -1,14 +1,22 @@
+from typing import List
 import logging
 import pdfkit
 
+import plugins.output
+
 logger = logging.getLogger(__name__)
 
-class Pdf():
+class Pdf(plugins.output.OutputGenerator):
+    key = 'pdf'
+    flag = '--pdf'
+    description = 'generate PDF output from HTML'
+    _alias_ = 'PDF'
+
     def __init__(self, jira, config):
         self.jira = jira
         self.config = config
 
-    def generate(self):
+    def generate(self) -> List[str]:
         source_file = self.config['input']['report']
         target_file = self.config['output']['report']
         cover_file = self.config['input']['cover']

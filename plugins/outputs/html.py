@@ -5,13 +5,15 @@ import re
 import jinja2
 from typing import List
 
+import plugins.output
+
 logger = logging.getLogger(__name__)
 
-
-class Html():
-    def __init__(self, jira, config: dict):
-        self.jira = jira
-        self.config = config
+class Html(plugins.output.OutputGenerator):
+    key = 'html'
+    flag = '--html'
+    description = 'generate HTML output'
+    _alias_ = 'HTML'
 
     def generate(self) -> List[str]:
         files = [ ]

@@ -6,6 +6,8 @@ import json
 from functools import cached_property
 from typing import List
 
+import plugins.output
+
 logger = logging.getLogger(__name__)
 
 class Node(dict):
@@ -20,10 +22,11 @@ class Node(dict):
         return node
 
 
-class D3js():
-    def __init__(self, jira, config):
-        self.jira = jira
-        self.config = config
+class D3js(plugins.output.OutputGenerator):
+    key = 'd3js'
+    flag = '--d3js'
+    description = 'generate D3.js output'
+    _alias_ = 'D3.js'
 
     def generate(self) -> List[str]:
         files = [ ]

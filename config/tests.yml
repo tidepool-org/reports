@@ -1,0 +1,8 @@
+cache:
+  folder: cache
+  refresh: 21600
+reports:
+  ui_tests:
+    url: https://tidepool-loopworkspace-build.s3-us-west-2.amazonaws.com/2020-11-05T01%3A50%3A09Z/8692/11.7.0_iphone-se-2_smoke_3.xml
+  unit_tests:
+    url: https://tidepool-loopworkspace-build.s3-us-west-2.amazonaws.com/2020-11-05T01%3A50%3A09Z/8692/unit_test_report.xml

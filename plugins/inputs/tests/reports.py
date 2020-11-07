@@ -5,13 +5,17 @@ import requests
 from functools import cached_property
 from typing import List
 
+import plugins.input
 from .report import TestReport
 
 logger = logging.getLogger(__name__)
 
-class TestReports():
+class TestReports(plugins.input.InputSource):
+    _alias_ = 'Test Reports'
+    key = 'tests'
+
     def __init__(self, config):
-        self.config = config
+        super().__init__(config)
         self.cache_folder = self.config['cache']['folder']
         self.cache_ignore = self.config['refresh_cache']
         os.makedirs(self.cache_folder, exist_ok = True)

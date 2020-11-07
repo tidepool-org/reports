@@ -6,14 +6,15 @@ import logging
 import logging.config
 import argparse
 import yaml
+from yamlinclude import YamlIncludeConstructor
+YamlIncludeConstructor.add_to_loader_class(loader_class = yaml.SafeLoader, base_dir = '.')
 from zipfile import ZipFile, ZIP_DEFLATED
 from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
-from generators import JiraHelper, TestReports, Html, Pdf, Excel, GraphViz, D3js
+from plugins import plugin_loader
 
-#logging.basicConfig(filename='report.log', filemode='w', level=logging.DEBUG, format='%(asctime)s %(levelname)s [%(name)s] %(message)s', datefmt='%Y-%m-%dT%H:%M:%S')
 logging.config.fileConfig('logging.conf')
 logger = logging.getLogger('report')
 
@@ -31,58 +32,42 @@ class NegateAction(argparse.Action):
 def main():
     logger.info('Tidepool Report Generator v0.1')
     logger.debug('parsing arguments')
-    parser = argparse.ArgumentParser(description='Generate Verification Test Report')
+    parser = argparse.ArgumentParser(description = 'Generate Tidepool Loop reports')
     default_config_file = 'report.yml'
-    parser.add_argument('--config', help=f'configuration file (default: {default_config_file})', default=default_config_file)
+    parser.add_argument('--config', help = f'configuration file (default: {default_config_file})', default = default_config_file)
+    parser.add_argument('--refresh', action = 'store_true', help = 'force a refresh of cached data')
+    parser.add_argument('--cache', '--no-cache', dest = 'cache', default = True, action = NegateAction, nargs = 0, help = 'cache data')
+    parser.add_argument('--zip', '--no-zip', dest = 'zip', default = True, action = NegateAction, nargs = 0, help = 'combine output files into a ZIP file')
 
-    parser.add_argument('--html', action='store_true', help='generate HTML output')
-    parser.add_argument('--pdf', action='store_true', help='generate PDF output from HTML')
-    parser.add_argument('--excel', action='store_true', help='generate XLSX output')
-    parser.add_argument('--graph', action='store_true', help='generate graph output')
-    parser.add_argument('--d3js', action='store_true', help='generate D3.js output')
-
-    parser.add_argument('--refresh', action='store_true', help='force a refresh of cached data')
-    parser.add_argument('--cache', '--no-cache', dest='cache', default=True, action=NegateAction, nargs=0, help='cache data')
-    parser.add_argument('--zip', '--no-zip', dest='zip', default=True, action=NegateAction, nargs=0, help='combine output files into a ZIP file')
+    # add command line flags for each of the output generators
+    for plugin in plugin_loader.plugins.output.values():
+        logger.debug(f'adding command line flag {plugin.flag} for plugin {plugin.name}')
+        parser.add_argument(plugin.flag, dest = 'outputs', action = 'append_const', const = plugin.name, help = plugin.description)
 
     args = parser.parse_args()
     config = read_config(args.config)
     generated = datetime.today()
-    logger.debug('connecting to Jira')
-    config['jira']['refresh_cache'] = args.refresh
-    jira = JiraHelper(config['jira'])
-    config['tests']['refresh_cache'] = args.refresh
-    test_reports = TestReports(config['tests'])
-    logger.info('generating outputs')
-    files = [ ]
 
-    if args.html:
-        config['html']['generated'] = generated
-        files.extend(Html(jira, config['html']).generate())
+    # initialize input sources
+    logger.debug('connecting to input sources')
+    inputs = { }
+    for plugin in plugin_loader.plugins.input.values():
+        logger.debug(f'connecting to {plugin.name}')
+        inputs[plugin.key] = plugin({ 'generated': generated, 'refresh_cache': args.refresh, **config[plugin.key] })
 
-    if args.excel:
-        config['excel']['generated'] = generated
-        files.extend(Excel(jira, test_reports, config['excel']).generate())
-
-    if args.graph:
-        config['graphviz']['generated'] = generated
-        files.extend(GraphViz(jira, config['graphviz']).generate())
-
-    if args.d3js:
-        config['d3js']['generated'] = generated
-        files.extend(D3js(jira, config['d3js']).generate())
-
-    if args.pdf:
-        config['pdf']['generated'] = generated
-        files.extend(Pdf(jira, config['pdf']).generate())
+    logger.debug('execute selected output generators')
+    files = set()
+    for plugin_name in (args.outputs or [ ]):
+        plugin = plugin_loader.get_plugin('output', plugin_name)
+        logger.info(f'generating {plugin.name} output')
+        files.update(plugin({ 'generated': generated, **config[plugin.key] }, inputs).generate())
 
     if args.zip:
         logger.info(f"generating ZIP file {config['zip']['output']} from {files}")
-        with ZipFile(config['zip']['output'], mode='w', compression=ZIP_DEFLATED) as zip:
-            for file in set(files):
-                zip.write(file, arcname=os.path.basename(file))
+        with ZipFile(config['zip']['output'], mode = 'w', compression = ZIP_DEFLATED) as zip:
+            for file in files:
+                zip.write(file, arcname = os.path.basename(file))
 
-    logger.debug(f"missed {len(jira.missed)}: {jira.missed.keys()}")
     logger.info(f"done, elapsed time {datetime.today() - generated}")
 
 if __name__ == '__main__':

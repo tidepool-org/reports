@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
-    <title>{{ config['title'] }} {{ config['subject'] }}</title>
+    <title>{{ config['properties']['title'] }} {{ config['properties']['subject'] }}</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon"/>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
     <style type="text/css">
@@ -142,8 +142,8 @@
                 </div>
                 <div class="row">
                     <div class="col-md-8">
-                        <h1>{{ config['title'] }}<h1>
-                        <h2>{{ config['subject'] }}</h2>
+                        <h1>{{ config['properties']['title'] }}<h1>
+                        <h2>{{ config['properties']['subject'] }}</h2>
                         <p>Generated on {{ now }}</p>
                     </div>
                     <div class="col-md-4">

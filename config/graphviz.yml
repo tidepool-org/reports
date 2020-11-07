@@ -1,0 +1,9 @@
+output:
+  requirements:
+    engine: dot
+    format: svg
+    graph: output/report_by_reqs
+  epics:
+    engine: dot
+    format: svg
+    graph: output/report_by_epics

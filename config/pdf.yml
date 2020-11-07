@@ -1,0 +1,10 @@
+input:
+  cover: templates/pdf/cover.html
+  cover_style: templates/pdf/cover.css
+  header: templates/pdf/header.html
+  style: templates/pdf/print.css
+  report: output/report.html
+output:
+  cover: output/cover.html
+  header: output/header.html
+  report: output/report.pdf

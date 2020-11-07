@@ -1,16 +1,24 @@
+from typing import List
 import logging
 import re
 from graphviz import Digraph
 import html
 
+import plugins.output
+
 logger = logging.getLogger(__name__)
 
-class GraphViz():
+class GraphViz(plugins.output.OutputGenerator):
+    key = 'graphviz'
+    flag = '--graphviz'
+    description = 'generate GraphViz output'
+    _alias_ = 'GraphViz'
+
     def __init__(self, jira, config):
         self.jira = jira
         self.config = config
 
-    def generate(self) -> None:
+    def generate(self) -> List[str]:
         self.graph_by_requirements()
         self.graph_by_epics()
 

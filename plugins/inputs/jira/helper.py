@@ -8,21 +8,27 @@ import re
 import atlassian
 from requests.exceptions import HTTPError
 
+import plugins.input
+
 from .issue import JiraIssue
 from .epic import JiraEpic
 from .story import JiraStory
 from .bug import JiraBug
 from .test import JiraTest
 from .risk import JiraRisk
+from .risk_score import JiraRiskScore
 from .func_req import JiraFuncRequirement
 from .user_req import JiraUserRequirement
 from .instruction import JiraInstruction
 
 logger = logging.getLogger(__name__)
 
-class JiraHelper():
+class JiraHelper(plugins.input.InputSource):
+    _alias_ = 'Jira'
+    key = 'jira'
+
     def __init__(self, config: dict):
-        self.config = config
+        super().__init__(config)
         if 'base_url' not in self.config:
             self.config['base_url'] = os.environ.get('JIRA_BASE_URL')
         if 'username' not in self.config:
@@ -49,6 +55,10 @@ class JiraHelper():
         self.all_fields
         self.all_schemas
         self.all_link_types
+
+    @property
+    def risk_scores(self):
+        return { JiraRiskScore.GREEN: 0, JiraRiskScore.YELLOW: 0, JiraRiskScore.RED: 0, JiraRiskScore.UNKNOWN: 0 }
 
     @cached_property
     def all_issues(self):
