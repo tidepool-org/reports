@@ -45,18 +45,18 @@ class D3js(plugins.output.OutputGenerator):
                     logger.info(f"skipping template {template_key} {source_file}, no target file")
                     continue
                 env = jinja2.Environment(
-                    loader=jinja2.FileSystemLoader(os.path.dirname(source_file)),
-                    autoescape=jinja2.select_autoescape(['html', 'xml']),
-                    trim_blocks=True,
-                    lstrip_blocks=True,
-                    # enable_async=True,
+                    loader = jinja2.FileSystemLoader(os.path.dirname(source_file)),
+                    autoescape = jinja2.select_autoescape(['html', 'xml']),
+                    trim_blocks = True,
+                    lstrip_blocks = True,
+                    # enable_async = True,
                 )
 
                 logger.info(f"generating {target_file} from {source_file}")
                 template = env.get_template(os.path.basename(source_file))
-                os.makedirs(os.path.dirname(target_file), exist_ok=True)
+                os.makedirs(os.path.dirname(target_file), exist_ok = True)
                 with open(target_file, 'w') as file:
-                    file.write(template.render(now=self.config['generated'].astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'), jira=self.jira, nodes=self.nodes, config=self.config, basename=lambda name: os.path.basename(name)))
+                    file.write(template.render(now = self.config['generated'].astimezone().strftime('%Y-%m-%d %H:%M:%S %Z'), jira = self.jira, nodes = self.nodes, config = self.config, basename = lambda name: os.path.basename(name)))
                 files.append(target_file)
 
             logger.info(f"done generating D3.js visualization output {graph}")
@@ -64,7 +64,7 @@ class D3js(plugins.output.OutputGenerator):
         return files
 
     def copy(self, source_file: str, target_file: str):
-        os.makedirs(os.path.dirname(target_file), exist_ok=True)
+        os.makedirs(os.path.dirname(target_file), exist_ok = True)
         shutil.copy(source_file, target_file)
 
     @cached_property

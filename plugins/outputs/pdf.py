@@ -44,4 +44,4 @@ class Pdf(plugins.output.OutputGenerator):
             'footer-center': f"Generated on {self.config['generated']}",
             'footer-right': 'Page [frompage] of [topage]'
         }
-        pdfkit.from_file(source_file, target_file, options=options, cover=cover_file)
+        pdfkit.from_file(source_file, target_file, options = options, cover = cover_file)

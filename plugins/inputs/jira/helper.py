@@ -37,9 +37,9 @@ class JiraHelper(plugins.input.InputSource):
             self.config['api_token'] = os.environ.get('JIRA_API_TOKEN')
         logger.info(f"connecting to Jira as '{self.config['username']}'")
         self.jira = atlassian.Jira(
-            url=self.config['base_url'],
-            username=self.config['username'],
-            password=self.config['api_token'])
+            url = self.config['base_url'],
+            username = self.config['username'],
+            password = self.config['api_token'])
         self.cache_folder = self.config['cache']['folder']
         self.cache_ignore = self.config['refresh_cache']
         os.makedirs(self.cache_folder, exist_ok = True)
@@ -158,7 +158,7 @@ class JiraHelper(plugins.input.InputSource):
         start = 0
         while True:
             logger.debug(f"fetching offset {start} of query {query} = [{jql}]")
-            res = self.jira.jql(jql, start=start, limit=100, fields=self.field_list, expand="renderedFields")
+            res = self.jira.jql(jql, start = start, limit = 100, fields = self.field_list, expand = "renderedFields")
             results.extend(res['issues'])
             count = int(res['maxResults'])
             total = int(res['total'])
@@ -234,14 +234,14 @@ class JiraHelper(plugins.input.InputSource):
         # otherwise, LOOP-1234 would sort before LOOP-456
         # this also includes the left side (project key) which is usually same
         # nonetheless, may be useful if we're sorting stories from multiple projects, within an epic
-        return sorted(issues, key=issuekey)
+        return sorted(issues, key = issuekey)
 
     @staticmethod
     def sorted_by_id(issues: List[JiraIssue]) -> List[JiraIssue]:
         # numerical sort of the each of the numbers in the id
         # otherwise, 1.2.3 would sort before 1.12.3
-        return sorted(issues, key=lambda issue: [ int(id_part) for id_part in issue.id.split('.') ] if issue.id else [ 0 ] )
+        return sorted(issues, key = lambda issue: [ int(id_part) for id_part in issue.id.split('.') ] if issue.id else [ 0 ] )
 
     @staticmethod
     def sorted_by_harm(issues: List[JiraIssue]) -> List[JiraIssue]:
-        return sorted(issues, key=lambda issue: f'{issue.harm}:{issue.hazard_category}')
+        return sorted(issues, key = lambda issue: f'{issue.harm}:{issue.hazard_category}')

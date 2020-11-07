@@ -233,18 +233,18 @@ class Excel(plugins.output.OutputGenerator):
                 story_row += 1
 
             row = max(risk_row + 1, story_row) - 1
-            self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk, end_row=row)
-            self.write_html(report, risk_row, columns['sequence'].column, risk.sequence, end_row=row)
-            self.write(report, risk_row, columns['source'].column, risk.source, end_row=row)
-            self.write(report, risk_row, columns['harm'].column, risk.harm, end_row=row)
-            self.write(report, risk_row, columns['hazard_category'].column, risk.hazard_category, end_row=row)
-            self.write(report, risk_row, columns['initial_severity'].column, risk.initial_severity, end_row=row)
-            self.write(report, risk_row, columns['initial_probability'].column, risk.initial_probability, end_row=row)
-            self.write(report, risk_row, columns['initial_risk'].column, risk.initial_risk, end_row=row)
-            self.write(report, risk_row, columns['residual_severity'].column, risk.residual_severity, end_row=row)
-            self.write(report, risk_row, columns['residual_probability'].column, risk.residual_probability, end_row=row)
-            self.write(report, risk_row, columns['residual_risk'].column, risk.residual_risk, end_row=row)
-            self.write(report, risk_row, columns['benefit'].column, risk.benefit, end_row=row)
+            self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk, end_row = row)
+            self.write_html(report, risk_row, columns['sequence'].column, risk.sequence, end_row = row)
+            self.write(report, risk_row, columns['source'].column, risk.source, end_row = row)
+            self.write(report, risk_row, columns['harm'].column, risk.harm, end_row = row)
+            self.write(report, risk_row, columns['hazard_category'].column, risk.hazard_category, end_row = row)
+            self.write(report, risk_row, columns['initial_severity'].column, risk.initial_severity, end_row = row)
+            self.write(report, risk_row, columns['initial_probability'].column, risk.initial_probability, end_row = row)
+            self.write(report, risk_row, columns['initial_risk'].column, risk.initial_risk, end_row = row)
+            self.write(report, risk_row, columns['residual_severity'].column, risk.residual_severity, end_row = row)
+            self.write(report, risk_row, columns['residual_probability'].column, risk.residual_probability, end_row = row)
+            self.write(report, risk_row, columns['residual_risk'].column, risk.residual_risk, end_row = row)
+            self.write(report, risk_row, columns['benefit'].column, risk.benefit, end_row = row)
             row += 1
 
         self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['low'], 'format': self.formats['low_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
@@ -282,19 +282,19 @@ class Excel(plugins.output.OutputGenerator):
                 story_row += 1
 
             row = max(risk_row + 1, story_row) - 1
-            self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk, end_row=row)
-            self.write_html(report, risk_row, columns['sequence'].column, risk.sequence, end_row=row)
-            self.write(report, risk_row, columns['source'].column, risk.source, end_row=row)
-            self.write(report, risk_row, columns['harm'].column, risk.harm, end_row=row)
-            self.write(report, risk_row, columns['hazard'].column, risk.hazard, end_row=row)
-            self.write(report, risk_row, columns['hazard_category'].column, risk.hazard_category, end_row=row)
-            self.write(report, risk_row, columns['initial_severity'].column, risk.initial_severity, end_row=row)
-            self.write(report, risk_row, columns['initial_probability'].column, risk.initial_probability, end_row=row)
-            self.write(report, risk_row, columns['initial_risk'].column, risk.initial_risk, end_row=row)
-            self.write(report, risk_row, columns['residual_severity'].column, risk.residual_severity, end_row=row)
-            self.write(report, risk_row, columns['residual_probability'].column, risk.residual_probability, end_row=row)
-            self.write(report, risk_row, columns['residual_risk'].column, risk.residual_risk, end_row=row)
-            self.write(report, risk_row, columns['benefit'].column, risk.benefit, end_row=row)
+            self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk, end_row = row)
+            self.write_html(report, risk_row, columns['sequence'].column, risk.sequence, end_row = row)
+            self.write(report, risk_row, columns['source'].column, risk.source, end_row = row)
+            self.write(report, risk_row, columns['harm'].column, risk.harm, end_row = row)
+            self.write(report, risk_row, columns['hazard'].column, risk.hazard, end_row = row)
+            self.write(report, risk_row, columns['hazard_category'].column, risk.hazard_category, end_row = row)
+            self.write(report, risk_row, columns['initial_severity'].column, risk.initial_severity, end_row = row)
+            self.write(report, risk_row, columns['initial_probability'].column, risk.initial_probability, end_row = row)
+            self.write(report, risk_row, columns['initial_risk'].column, risk.initial_risk, end_row = row)
+            self.write(report, risk_row, columns['residual_severity'].column, risk.residual_severity, end_row = row)
+            self.write(report, risk_row, columns['residual_probability'].column, risk.residual_probability, end_row = row)
+            self.write(report, risk_row, columns['residual_risk'].column, risk.residual_risk, end_row = row)
+            self.write(report, risk_row, columns['benefit'].column, risk.benefit, end_row = row)
             row += 1
 
         self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['low'], 'format': self.formats['low_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
@@ -397,7 +397,7 @@ class Excel(plugins.output.OutputGenerator):
         sheet.set_paper(self.config['page']['paper_size'])
         sheet.set_landscape()
         margins = self.config['page']['margins']
-        sheet.set_margins(left=margins['left'], right=margins['right'], top=margins['top'], bottom=margins['bottom'])
+        sheet.set_margins(left = margins['left'], right = margins['right'], top = margins['top'], bottom = margins['bottom'])
         sheet.center_horizontally()
         sheet.fit_to_pages(1, 0)  # 1 page wide and as long as necessary.
         sheet.print_area(0, 0, rows - 1, columns - 1)
@@ -405,7 +405,7 @@ class Excel(plugins.output.OutputGenerator):
 
     def format_text(self, sheet: xlsxwriter.worksheet, text: str) -> str:
         if text:
-            return text.format(date=self.generated_date, sheet=sheet.name)
+            return text.format(date = self.generated_date, sheet = sheet.name)
         return ''
 
     def header_font(self, format: str) -> str:

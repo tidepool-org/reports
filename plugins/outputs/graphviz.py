@@ -26,7 +26,7 @@ class GraphViz(plugins.output.OutputGenerator):
         output = self.config['output']['requirements']
         graph_file = output['graph']
         logger.info(f"generating {graph_file}")
-        graph = Digraph(comment=f"Generated on {self.config['generated']}", graph_attr={'rankdir': 'LR', 'splines': 'ortho'}, node_attr={'shape': 'none'})
+        graph = Digraph(comment = f"Generated on {self.config['generated']}", graph_attr = {'rankdir': 'LR', 'splines': 'ortho'}, node_attr = {'shape': 'none'})
 
         for req in self.jira.sorted_by_id(self.jira.func_requirements.values()):
             self.add_node(graph, req)
@@ -44,13 +44,13 @@ class GraphViz(plugins.output.OutputGenerator):
 
         graph.engine = output['engine']
         graph.format = output['format']
-        graph.render(filename=graph_file, cleanup=False, view=False)
+        graph.render(filename = graph_file, cleanup = False, view = False)
 
     def graph_by_epics(self) -> None:
         output = self.config['output']['epics']
         graph_file = output['graph']
         logger.info(f"generating {graph_file}")
-        graph = Digraph(comment=f"Generated on {self.config['generated']}", graph_attr={'rankdir': 'LR', 'splines': 'ortho'}, node_attr={'shape': 'none'})
+        graph = Digraph(comment = f"Generated on {self.config['generated']}", graph_attr = {'rankdir': 'LR', 'splines': 'ortho'}, node_attr = {'shape': 'none'})
 
         for epic in self.jira.sorted_by_key(self.jira.epics.values()):
             self.add_node(graph, epic)
@@ -67,7 +67,7 @@ class GraphViz(plugins.output.OutputGenerator):
 
         graph.engine = output['engine']
         graph.format = output['format']
-        graph.render(filename=graph_file, cleanup=False, view=False)
+        graph.render(filename = graph_file, cleanup = False, view = False)
 
     @staticmethod
     def node_id(issue) -> str:
