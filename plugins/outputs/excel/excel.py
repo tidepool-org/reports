@@ -1,153 +1,18 @@
 import logging
-from typing import Tuple, List, NamedTuple, Optional
-from functools import cached_property
+from typing import Tuple, List
 from operator import attrgetter
-import re
 import xlsxwriter
 from xlsxwriter.utility import xl_range, xl_cell_to_rowcol, xl_rowcol_to_cell
-from enum import IntEnum
-from html.parser import HTMLParser
 
+from .html import HtmlToExcel
+from .column import Column
+from .columns import Columns
 import plugins.output
 
 logger = logging.getLogger(__name__)
 
 def log_issue(issue, indent: int = 0):
     logger.debug(f"{indent * '--> '}added {issue.type} {issue.key} {issue.url}")
-
-class BaseSegment():
-    def __init__(self):
-        self.closed = False
-
-    def close(self):
-        self.closed = True
-
-    @property
-    def is_closed(self):
-        return self.closed
-
-    @property
-    def is_empty(self):
-        pass
-
-class Text(BaseSegment):
-    def __init__(self, text):
-        super().__init__()
-        self.text = text
-
-    def append(self, text):
-        self.text += text
-
-    @property
-    def is_empty(self):
-        return len(self.text) == 0
-
-    @property
-    def rendered(self):
-        return self.text
-
-class HyperLink(BaseSegment):
-    def __init__(self, url, text = None):
-        super().__init__()
-        self.url = url
-        self.text = text
-
-    def append(self, text):
-        self.text = text
-
-    @property
-    def pretty_link(self):
-        text = re.sub(r"""https://docs.google.+""", r"Google Document", self.text)
-        return re.sub(r"""https://tidepool.atlassian.net/browse/(.+)""", r"\1", text)
-
-    @property
-    def is_empty(self):
-        return False
-
-    @property
-    def rendered(self):
-        return self.pretty_link
-
-class HtmlToExcel(HTMLParser):
-    def __init__(self):
-        super().__init__()
-        self.nodes = [ ]
-
-    def parse(self, text):
-        self.reset()
-        self.feed(text)
-        self.close()
-        return self
-
-    @property
-    def is_empty(self):
-        return len(self.nodes) == 0
-
-    @property
-    def last_node(self):
-        return self.nodes[-1]
-
-    def add_node(self, node):
-        self.nodes.append(node)
-
-    def append_to_last(self, text):
-        self.last_node.append(text)
-
-    def handle_starttag(self, tag, attrs):
-        if tag == 'a':
-            href = next(attr[1] for attr in attrs if attr[0] == 'href')
-            self.add_node(HyperLink(href))
-
-    def handle_endtag(self, tag):
-        self.last_node.close()
-
-    def handle_data(self, data):
-        stripped = ' '.join(data.split())
-        if len(stripped) > 0:
-            if self.is_empty or self.last_node.is_closed:
-                self.add_node(Text(stripped))
-            else:
-                self.append_to_last(stripped)
-
-    @cached_property
-    def rendered(self):
-        return '\n'.join(seg.rendered for seg in self.nodes if not seg.is_empty)
-
-class Column(NamedTuple):
-    column: int
-    width: int
-    row: int
-    key: str
-    label: str
-
-    def __int__(self) -> int:
-        return self.column
-
-class Columns(dict):
-    def __init__(self, columns: List[dict], row: int = 0):
-        for i, column in enumerate(columns):
-            col = Column(row=row, column=i, **column)
-            self[col.column] = col
-            self[col.key] = col
-        self.row = row
-
-    @property
-    def ordered(self):
-        return sorted([ column for key, column in self.items() if isinstance(key, int) ], key=lambda col: col.column)
-
-    def __len__(self):
-        return len(self.ordered)
-
-    @property
-    def first(self):
-        return 0
-
-    @property
-    def last(self):
-        return len(self) - 1
-
-    def find_all(self, *names: List[str]) -> List[Column]:
-        return [ column for key, column in self.items() if isinstance(key, str) and column.key in names ]
 
 class Excel(plugins.output.OutputGenerator):
     key = 'excel'
@@ -171,30 +36,14 @@ class Excel(plugins.output.OutputGenerator):
     def properties(self):
         return self.config['properties']
 
-    @property
-    def title(self):
-        return self.properties['title']
-
-    @property
-    def subject(self):
-        return self.properties['subject']
-
-    @property
-    def font_name(self):
-        return self.config['formats']['base']['font_name']
-
-    @property
-    def font_size(self):
-        return self.config['formats']['base']['font_size']
-
     def generate(self) -> List[str]:
         output_file = self.config['output']['report']
         logger.info(f"generating {output_file}")
 
         book = xlsxwriter.Workbook(output_file)
         book.set_properties({
-            'title':    self.title,
-            'subject':  self.subject,
+            'title':    self.properties['title'],
+            'subject':  self.properties['subject'],
             'author':   self.properties['author'],
             'manager':  self.properties['manager'],
             'company':  self.properties['company'],
@@ -204,19 +53,17 @@ class Excel(plugins.output.OutputGenerator):
         })
         book.set_size(*self.config['window_size'])
 
-        self.common_format = self.add_format(book)
-        self.column_header_format = self.add_format(book, self.config['formats']['column_header'])
-        self.key_format = self.add_format(book, self.config['formats']['url'])
-        self.bold_format = self.add_format(book, self.config['formats']['bold'])
-        self.summary_format = self.add_format(book)
+        self.formats = { }
+        for format_key, format in self.config['formats'].items():
+            self.formats[format_key] = self.add_format(book, format)
 
         for _, sheet in self.config['sheets'].items():
             generator_method = getattr(self.__class__, sheet['generator'])
             generator_method(self, book, sheet)
 
-        logger.info(f"closing file {output_file}")
         book.close()
-        return [ self.config['output']['report'] ]
+        logger.info(f"done generating {output_file}")
+        return [ output_file ]
 
     #
     # cover
@@ -343,9 +190,9 @@ class Excel(plugins.output.OutputGenerator):
                 if story.test_strategy:
                     self.write_html(report, test_row, columns['test_key'].column, story.test_strategy, end_col = columns['test_summary'].column)
                     if story.is_done:
-                        self.write(report, test_row, columns['test_status'].column, self.passed, self.bold_format)
+                        self.write(report, test_row, columns['test_status'].column, self.passed, self.formats['bold'])
                     elif story.is_blocked:
-                        self.write(report, test_row, columns['test_status'].column, self.blocked, self.bold_format)
+                        self.write(report, test_row, columns['test_status'].column, self.blocked, self.formats['bold'])
                     test_row += 1
 
                 # merge story row to span all risks and tests
@@ -400,12 +247,9 @@ class Excel(plugins.output.OutputGenerator):
             self.write(report, risk_row, columns['benefit'].column, risk.benefit, end_row=row)
             row += 1
 
-        low_format = self.add_format(book, self.config['formats']['low_risk'])
-        medium_format = self.add_format(book, self.config['formats']['medium_risk'])
-        high_format = self.add_format(book, self.config['formats']['high_risk'])
-        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['low'], 'format': low_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
-        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['medium'], 'format': medium_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
-        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['high'], 'format': high_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['low'], 'format': self.formats['low_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['medium'], 'format': self.formats['medium_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['high'], 'format': self.formats['high_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
         logger.info(f"done adding report sheet '{props['name']}'")
@@ -453,12 +297,9 @@ class Excel(plugins.output.OutputGenerator):
             self.write(report, risk_row, columns['benefit'].column, risk.benefit, end_row=row)
             row += 1
 
-        low_format = self.add_format(book, self.config['formats']['low_risk'])
-        medium_format = self.add_format(book, self.config['formats']['medium_risk'])
-        high_format = self.add_format(book, self.config['formats']['high_risk'])
-        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['low'], 'format': low_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
-        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['medium'], 'format': medium_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
-        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['high'], 'format': high_format}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['low'], 'format': self.formats['low_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['medium'], 'format': self.formats['medium_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['high'], 'format': self.formats['high_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
         logger.info(f'total of {total_risks} risks')
@@ -480,11 +321,11 @@ class Excel(plugins.output.OutputGenerator):
         # tests
         row = 1
         for test_report in self.test_reports.reports.values():
-            for test in sorted(test_report.test_cases, key=attrgetter('suite', 'name')):
+            for test in sorted(test_report.test_cases, key = attrgetter('suite', 'name')):
                 self.write(report, row, columns['test_suite'].column, test.suite)
                 self.write(report, row, columns['test_case'].column, test.name)
                 self.write(report, row, columns['time'].column, test.time)
-                self.write(report, row, columns['status'].column, self.passed if test.status else '', self.bold_format)
+                self.write(report, row, columns['status'].column, self.passed if test.status else '', self.formats['bold'])
                 row += 1
 
         self.set_paper(report, row, len(columns))
@@ -509,8 +350,8 @@ class Excel(plugins.output.OutputGenerator):
         sheet.freeze_panes(columns.row + 1, 0) # freeze header row
         sheet.repeat_rows(columns.row)
         for col in columns.ordered:
-            sheet.set_column(col.column, col.column, col.width, self.common_format)
-            sheet.write(col.row, col.column, col.label, self.column_header_format)
+            sheet.set_column(col.column, col.column, col.width, self.formats['base'])
+            sheet.write(col.row, col.column, col.label, self.formats['column_header'])
 
     def set_conditional_format(self, sheet: xlsxwriter.worksheet, format: dict, rows: Tuple[int, int], columns: List[Column]) -> None:
         if rows[1] - rows[0] > 0:
@@ -521,13 +362,13 @@ class Excel(plugins.output.OutputGenerator):
         end_row = end_row or row
         end_col = end_col or col
         if end_row - row > 0 or end_col - col > 0:
-            sheet.merge_range(row, col, end_row, end_col, value, format or self.common_format)
+            sheet.merge_range(row, col, end_row, end_col, value, format or self.formats['base'])
             return True
         return False
 
     def write(self, sheet: xlsxwriter.worksheet, row: int, col: int, value, format: xlsxwriter.format = None, end_row: int = None, end_col: int = None) -> None:
         if not self.merge(sheet, row, col, end_row, end_col, value, format):
-            sheet.write(row, col, value, format or self.common_format)
+            sheet.write(row, col, value, format or self.formats['base'])
 
     def write_key_and_summary(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None, end_col: int = None) -> None:
         self.write_url(sheet, row, col, issue, end_row, end_col)
@@ -537,20 +378,20 @@ class Excel(plugins.output.OutputGenerator):
 
     def write_url(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None, end_col: int = None) -> None:
         self.merge(sheet, row, col, end_row, end_col)
-        sheet.write_url(row, col, issue.url, self.key_format, issue.key, issue.url)
+        sheet.write_url(row, col, issue.url, self.formats['url'], issue.key, issue.url)
 
     def write_html(self, sheet: xlsxwriter.worksheet, row: int, col: int, value, end_row: int = None, end_col: int = None) -> None:
         html = HtmlToExcel().parse(value)
-        self.write(sheet, row, col, html.rendered, self.summary_format, end_row, end_col)
+        self.write(sheet, row, col, html.rendered, self.formats['summary'], end_row, end_col)
 
     def write_status(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None) -> None:
         if issue.is_done:
-            self.write(sheet, row, col, self.passed, self.bold_format, end_row)
+            self.write(sheet, row, col, self.passed, self.formats['bold'], end_row)
         elif issue.is_blocked:
-            self.write(sheet, row, col, self.blocked, self.bold_format, end_row)
+            self.write(sheet, row, col, self.blocked, self.formats['bold'], end_row)
 
     def write_id(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None, end_col: int = None) -> None:
-        self.write(sheet, row, col, str(issue.id), self.summary_format, end_row, end_col)
+        self.write(sheet, row, col, str(issue.id), self.formats['summary'], end_row, end_col)
 
     def set_paper(self, sheet: xlsxwriter.worksheet, rows: int, columns: int) -> None:
         sheet.set_paper(self.config['page']['paper_size'])

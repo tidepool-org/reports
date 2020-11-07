@@ -61,6 +61,7 @@ def main():
         plugin = plugin_loader.get_plugin('output', plugin_name)
         logger.info(f'generating {plugin.name} output')
         files.update(plugin({ 'generated': generated, **config[plugin.key] }, inputs).generate())
+        logger.info(f'done generating {plugin.name} output')
 
     if args.zip:
         logger.info(f"generating ZIP file {config['zip']['output']} from {files}")
