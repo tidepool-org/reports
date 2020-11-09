@@ -11,7 +11,8 @@ queries:
   user_requirements: project=TLFR AND issuetype="User Requirement" AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
   risks: project=TLR AND issuetype IN (Story, Task) AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
   epics: project=LOOP AND fixVersion="{fix_version}" AND issuetype="Epic" AND (component NOT IN ({exclude_component}) OR component is EMPTY OR component IN ({include_component}))
-  stories: project=LOOP AND (fixVersion="{fix_version}" OR component="{include_component}") AND issuetype IN (Story, Bug, Task, Sub-task) AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
+  stories: project=LOOP AND (fixVersion="{fix_version}" OR component="{include_component}") AND issuetype IN (Story, Task, Sub-task) AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
+  bugs: project=LOOP AND issuetype IN (Bug) AND resolution=Unresolved AND (component NOT IN ({exclude_component}) OR component IS EMPTY)
   tests: project=LOOP AND issuetype IN ("Test", "Test Execution", "Sub Test Execution") AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
   instructions: project=IFU AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
 fields:

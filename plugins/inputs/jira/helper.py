@@ -62,7 +62,7 @@ class JiraHelper(plugins.input.InputSource):
 
     @cached_property
     def all_issues(self):
-        return { **self.func_requirements, **self.user_requirements, **self.risks, **self.stories, **self.epics, **self.tests, **self.instructions }
+        return { **self.func_requirements, **self.user_requirements, **self.risks, **self.stories, **self.bugs, **self.epics, **self.tests, **self.instructions }
 
     @cached_property
     def all_fields(self):
@@ -138,6 +138,11 @@ class JiraHelper(plugins.input.InputSource):
     def stories(self):
         logger.info('fetching stories')
         return self.to_dict(self.jql('stories'), JiraStory)
+
+    @cached_property
+    def bugs(self):
+        logger.info('fetching bugs')
+        return self.to_dict(self.jql('bugs'), JiraBug)
 
     @cached_property
     def tests(self):
@@ -245,3 +250,7 @@ class JiraHelper(plugins.input.InputSource):
     @staticmethod
     def sorted_by_harm(issues: List[JiraIssue]) -> List[JiraIssue]:
         return sorted(issues, key = lambda issue: f'{issue.harm}:{issue.hazard_category}')
+
+    @staticmethod
+    def sorted_by_fix_version(issues: List[JiraIssue]) -> List[JiraIssue]:
+        return sorted(issues, key = lambda issue: f'{",".join(issue.fix_versions)}:{issue.key}')

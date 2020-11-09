@@ -32,6 +32,7 @@ formats:
 labels:
   passed: ✅ PASSED
   blocked: ❌ BLOCKED
+  verified: ✅ VERIFIED
 risks: # initial_risk and residual_risk prefix strings
   low: Green
   medium: Yellow
@@ -77,27 +78,39 @@ sheets:
         height: 250 # row height
         options: { object_position: 3, x_offset: 500, y_offset: 100, x_scale: 0.25, y_scale: 0.25 }
   requirements:
+    generator: add_requirements_summary_sheet # method name in excel.py
+    name: 'Traceability Summary'
+    aggregate_risks: true
+    columns:
+      - { width: 7,  key: req_id,          label: 'Req ID' }
+      - { width: 11, key: req_key,         label: 'Req Key' }
+      - { width: 50, key: req_summary,     label: 'Req Feature' }
+      - { width: 50, key: req_description, label: 'Req Description' }
+      - { width: 11, key: story_key,       label: 'Story Key' }
+      - { width: 50, key: story_summary,   label: 'Story Summary' }
+      - { width: 15, key: story_status,    label: 'Status' }
+  full_requirements:
     generator: add_requirements_sheet # method name in excel.py
     name: 'Traceability Report'
     aggregate_risks: true
     columns:
       - { width: 7,  key: req_id,          label: 'Req ID' }
-      - { width: 10, key: req_key,         label: 'Req Key' }
+      - { width: 11, key: req_key,         label: 'Req Key' }
       - { width: 50, key: req_summary,     label: 'Req Feature' }
       - { width: 50, key: req_description, label: 'Req Description' }
-      - { width: 10, key: story_key,       label: 'Story Key' }
+      - { width: 11, key: story_key,       label: 'Story Key' }
       - { width: 50, key: story_summary,   label: 'Story Summary' }
-      - { width: 10, key: test_key,        label: 'Test Key' }
+      - { width: 11, key: test_key,        label: 'Test Key' }
       - { width: 50, key: test_summary,    label: 'Test Summary' }
       - { width: 11, key: test_status,     label: 'Test Status' }
       - { width: 2,  key: gap,             label: '' }
-      - { width: 10, key: risk_key,        label: 'Risk Key' }
+      - { width: 11, key: risk_key,        label: 'Risk Key' }
       - { width: 50, key: risk_summary,    label: 'Hazardous Situation' }
   # risks:
   #   generator: add_risks_sheet # method name in excel.py
   #   name: 'Hazard Analysis'
   #   columns:
-  #     - { width: 10, key: risk_key,             label: 'Risk Key' }
+  #     - { width: 11, key: risk_key,             label: 'Risk Key' }
   #     - { width: 50, key: risk_summary,         label: 'Hazardous Situation' }
   #     - { width: 25, key: source,               label: 'Source' }
   #     - { width: 30, key: sequence,             label: 'Sequence of Events' }
@@ -106,7 +119,7 @@ sheets:
   #     - { width: 12, key: initial_severity,     label: 'Initial Severity' }
   #     - { width: 12, key: initial_probability,  label: 'Initial Probability' }
   #     - { width: 11, key: initial_risk,         label: 'Initial Risk Score' }
-  #     - { width: 10, key: mitigation_key,       label: 'Mitigation Key' }
+  #     - { width: 11, key: mitigation_key,       label: 'Mitigation Key' }
   #     - { width: 50, key: mitigation_summary,   label: 'Mitigation Summary' }
   #     - { width: 12, key: residual_severity,    label: 'Residual Severity' }
   #     - { width: 12, key: residual_probability, label: 'Residual Probability' }
@@ -116,7 +129,7 @@ sheets:
     generator: add_risks_sheet_v2 # method name in excel.py
     name: 'Hazard Analysis'
     columns:
-      - { width: 10, key: risk_key,             label: 'Risk Key' }
+      - { width: 11, key: risk_key,             label: 'Risk Key' }
       - { width: 50, key: risk_summary,         label: 'Hazardous Situation' }
       - { width: 25, key: source,               label: 'Source' }
       - { width: 30, key: sequence,             label: 'Sequence of Events' }
@@ -126,12 +139,20 @@ sheets:
       - { width: 12, key: initial_severity,     label: 'Initial Severity' }
       - { width: 12, key: initial_probability,  label: 'Initial Probability' }
       - { width: 11, key: initial_risk,         label: 'Initial Risk Score' }
-      - { width: 10, key: mitigation_key,       label: 'Mitigation Key' }
+      - { width: 11, key: mitigation_key,       label: 'Mitigation Key' }
       - { width: 50, key: mitigation_summary,   label: 'Mitigation Summary' }
       - { width: 12, key: residual_severity,    label: 'Residual Severity' }
       - { width: 12, key: residual_probability, label: 'Residual Probability' }
       - { width: 11, key: residual_risk,        label: 'Residual Risk Score' }
       - { width: 10, key: benefit,              label: 'Benefit outweigh Risks? Y/N' }
+  bugs:
+    generator: add_bugs_sheet # method name in excel.py
+    name: 'Open Defects'
+    columns:
+      - { width: 11, key: bug_key,              label: 'Defect Key' }
+      - { width: 70, key: bug_summary,          label: 'Defect Summary' }
+      - { width: 11, key: bug_status,           label: 'Defect Status' }
+      - { width: 25, key: fix_version,          label: 'Fix Version' }
   tests:
     generator: add_tests_sheet # method name in excel.py
     name: 'Automated Tests'
@@ -144,13 +165,13 @@ sheets:
   #   generator: add_epics_sheet # method name in excel.py
   #   name: All Development Tickets
   #   columns:
-  #     - { width: 10, key: epic_key,      label: 'Epic Key' }
+  #     - { width: 11, key: epic_key,      label: 'Epic Key' }
   #     - { width: 50, key: epic_sumamry,  label: 'Epic Summary' }
-  #     - { width: 10, key: story_key,     label: 'Story Key' }
+  #     - { width: 11, key: story_key,     label: 'Story Key' }
   #     - { width: 50, key: story_summary, label: 'Story Summary' }
-  #     - { width: 10, key: risk_key,      label: 'Risk Key' }
+  #     - { width: 11, key: risk_key,      label: 'Risk Key' }
   #     - { width: 50, key: risk_summary,  label: 'Hazardous Situation' }
-  #     - { width: 10, key: test_key,      label: 'Test Key' }
+  #     - { width: 11, key: test_key,      label: 'Test Key' }
   #     - { width: 50, key: test_summary,  label: 'Test Summary' }
   #     - { width: 11, key: test_status,   label: 'Test Status' }
 output:

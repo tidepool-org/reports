@@ -33,6 +33,10 @@ class Excel(plugins.output.OutputGenerator):
         return self.config['labels']['blocked']
 
     @property
+    def verified(self):
+        return self.config['labels']['verified']
+
+    @property
     def properties(self):
         return self.config['properties']
 
@@ -87,7 +91,7 @@ class Excel(plugins.output.OutputGenerator):
         self.set_paper(cover, row + 1, col + 1)
 
     #
-    # requirements
+    # requirements report
     #
     def add_requirements_sheet(self, book: xlsxwriter.Workbook, props: dict) -> None:
         logger.info(f"adding report sheet '{props['name']}'")
@@ -151,6 +155,44 @@ class Excel(plugins.output.OutputGenerator):
         logger.info(f'total of {self.percentage(total_requirements, total_verified)} verified requirements')
         logger.info(f"done adding report sheet '{props['name']}'")
 
+    #
+    # requirements summary
+    #
+    def add_requirements_summary_sheet(self, book: xlsxwriter.Workbook, props: dict) -> None:
+        logger.info(f"adding report sheet '{props['name']}'")
+        report = book.add_worksheet(props['name'])
+        columns = Columns(props['columns'])
+        self.set_headings(report, columns)
+
+        # requirements, sorted by requirement ID
+        total_requirements = 0
+        total_verified = 0
+        row = 1
+        for req in self.jira.sorted_by_id(self.jira.exclude_junk(self.jira.func_requirements.values(), enforce_versions = False)):
+            log_issue(req)
+            req_row = row
+
+            # stories, sorted by issue key
+            story_row = req_row
+            for story in self.jira.sorted_by_key(self.jira.exclude_junk(req.defines, enforce_versions = True)):
+                log_issue(story, 1)
+                self.write_key_and_summary(report, story_row, columns['story_key'].column, story)
+                if story.is_done:
+                    self.write(report, story_row, columns['story_status'].column, self.verified, self.formats['bold'])
+                story_row += 1
+
+            row = max(req_row + 1, story_row) - 1
+            self.write_id(report, req_row, columns['req_id'].column, req, end_row = row)
+            self.write_key_and_summary(report, req_row, columns['req_key'].column, req, end_row = row)
+            self.write_html(report, req_row, columns['req_description'].column, req.description, end_row = row)
+            row += 1
+            total_requirements += 1
+
+        report.ignore_errors({ 'number_stored_as_text': xl_range(0, 0, row - 1, columns.last) })
+        self.set_paper(report, row, len(columns))
+        self.set_header_and_footer(report)
+        logger.info(f'total of {total_requirements} requirements')
+        logger.info(f"done adding report sheet '{props['name']}'")
 
     #
     # epics
@@ -307,6 +349,30 @@ class Excel(plugins.output.OutputGenerator):
             logger.info(f'total of initial risk {key.name}: {self.percentage(total_risks, count)} risks')
         for key, count in total_residual_scores.items():
             logger.info(f'total of residual risk {key.name}: {self.percentage(total_risks, count)} risks')
+        logger.info(f"done adding report sheet '{props['name']}'")
+
+    #
+    # bugs
+    #
+    def add_bugs_sheet(self, book: xlsxwriter.Workbook, props: dict):
+        logger.info(f"adding report sheet '{props['name']}'")
+        report = book.add_worksheet(props['name'])
+        columns = Columns(props['columns'])
+        self.set_headings(report, columns)
+
+        # bugs, sorted by key
+        row = 1
+        for bug in self.jira.sorted_by_fix_version(self.jira.exclude_junk(self.jira.bugs.values(), enforce_versions = False)):
+            log_issue(bug)
+            bug_row = row
+
+            self.write_key_and_summary(report, bug_row, columns['bug_key'].column, bug, end_row = row)
+            self.write_status(report, bug_row, columns['bug_status'].column, bug, end_row = row)
+            self.write(report, bug_row, columns['fix_version'].column, ', '.join(bug.fix_versions), end_row = row)
+            row += 1
+
+        self.set_paper(report, row, len(columns))
+        self.set_header_and_footer(report)
         logger.info(f"done adding report sheet '{props['name']}'")
 
     #
