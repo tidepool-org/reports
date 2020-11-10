@@ -1,3 +1,7 @@
+"""
+Copyright (c) 2020, Tidepool Project
+All rights reserved.
+"""
 from typing import List
 import logging
 import pdfkit

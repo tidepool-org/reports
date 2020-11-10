@@ -9,6 +9,9 @@ or graphs based on that data.
 The `plugins` folder contains all input and output plug-ins.
 The `templates` folder contains templates used by those plug-ins.
 The `report.yml` file contains configuration for those plug-ins.
+
+Copyright (c) 2020, Tidepool Project
+All rights reserved.
 """
 import os
 import logging

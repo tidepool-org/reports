@@ -1,3 +1,7 @@
+"""
+Copyright (c) 2020, Tidepool Project
+All rights reserved.
+"""
 import logging
 from typing import List
 from .base import JiraBase

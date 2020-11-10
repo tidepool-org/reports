@@ -1,3 +1,7 @@
+"""
+Copyright (c) 2020, Tidepool Project
+All rights reserved.
+"""
 import re
 from .base_segment import BaseSegment
 

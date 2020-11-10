@@ -1,3 +1,7 @@
+"""
+Copyright (c) 2020, Tidepool Project
+All rights reserved.
+"""
 class TestSuite():
     def __init__(self, suite):
         self.name = suite.get('name')

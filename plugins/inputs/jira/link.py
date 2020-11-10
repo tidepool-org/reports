@@ -1,3 +1,7 @@
+"""
+Copyright (c) 2020, Tidepool Project
+All rights reserved.
+"""
 from functools import cached_property # import functools
 from .base import JiraBase
 from .link_dir import JiraLinkDirection

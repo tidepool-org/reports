@@ -1,3 +1,7 @@
+"""
+Copyright (c) 2020, Tidepool Project
+All rights reserved.
+"""
 from enum import IntEnum 
 
 class JiraRiskScore(IntEnum):

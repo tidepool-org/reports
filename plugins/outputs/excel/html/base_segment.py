@@ -1,3 +1,7 @@
+"""
+Copyright (c) 2020, Tidepool Project
+All rights reserved.
+"""
 class BaseSegment():
     def __init__(self):
         self.closed = False

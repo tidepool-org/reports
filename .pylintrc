@@ -1,0 +1,5 @@
+[MESSAGES CONTROL]
+disable=
+    line-too-long,
+    too-few-public-methods,
+    logging-fstring-interpolation,

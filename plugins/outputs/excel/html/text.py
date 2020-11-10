@@ -1,3 +1,7 @@
+"""
+Copyright (c) 2020, Tidepool Project
+All rights reserved.
+"""
 from .base_segment import BaseSegment
 
 class Text(BaseSegment):
