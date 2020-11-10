@@ -91,7 +91,7 @@ class JiraRisk(JiraIssue):
     @property
     def mitigations(self) -> List[JiraIssue]:
         mitigations = set() # only list unique mitigations
-        logger.debug(f'examining {self.key} links')
+        logger.debug(f'examining {self.key} links: {",".join([ link.key for link in self.links ])}')
         for issue in self.jira.exclude_junk(self.links, enforce_versions = False):
             logger.debug(f'looking at {issue.type} {issue.key} {issue.url}')
             if (issue.is_story and issue.is_mitigated_by) or issue.is_instruction:

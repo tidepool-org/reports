@@ -230,6 +230,10 @@ class JiraHelper(plugins.input.InputSource):
         return [ issue for issue in issues if not issue.is_junk ]
 
     @staticmethod
+    def filter_by(issues: List[JiraIssue], filter: List[str]) -> List[JiraIssue]:
+        return [ issue for issue in issues if issue.key in filter ]
+
+    @staticmethod
     def sorted_by_key(issues: List[JiraIssue]) -> List[JiraIssue]:
         def issuekey(issue):
             parts = issue.key.split('-')

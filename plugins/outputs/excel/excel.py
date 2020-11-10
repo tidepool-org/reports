@@ -352,6 +352,77 @@ class Excel(plugins.output.OutputGenerator):
         logger.info(f"done adding report sheet '{props['name']}'")
 
     #
+    # insulin fidelity
+    #
+    def add_insulin_fidelity_sheet(self, book: xlsxwriter.Workbook, props: dict):
+        logger.info(f"adding report sheet '{props['name']}'")
+        report = book.add_worksheet(props['name'])
+        columns = Columns(props['columns'])
+        self.set_headings(report, columns)
+
+        # risks, sorted by harm
+        total_risks = 0
+        total_initial_scores = self.jira.risk_scores
+        total_residual_scores = self.jira.risk_scores
+        row = 1
+        for risk in self.jira.sorted_by_harm(self.jira.filter_by(self.jira.risks.values(), props['filter'])):
+            log_issue(risk)
+            risk_row = row
+            total_risks += 1
+            total_initial_scores[risk.score(risk.initial_risk)] += 1
+            total_residual_scores[risk.score(risk.residual_risk)] += 1
+
+            # list all mitigations in the sheet
+            story_row = row
+            for mitigation in self.jira.sorted_by_key(risk.mitigations):
+                stories = set()
+                tests = set()
+                if mitigation.is_func_requirement:
+                    self.write_id(report, story_row, columns['mitigation_id'].column, mitigation)
+                    self.write_key_and_summary(report, story_row, columns['mitigation_key'].column, mitigation)
+                    for story in mitigation.defines: # add all stories, and all tests that verify those stories
+                        stories.add(story)
+                        tests.update(story.tests)
+                else: # story or IFU
+                    stories.add(mitigation)
+                    tests.update(mitigation.tests)
+                    if len(tests) == 0:
+                        tests = stories
+                if len(stories) == 1:
+                    self.write_key(report, story_row, columns['story_keys'].column, stories.pop())
+                else:
+                    self.write(report, story_row, columns['story_keys'].column, ', '.join([ story.key for story in self.jira.sorted_by_key(stories) ]))
+                self.write(report, story_row, columns['test_keys'].column, ', '.join([ test.key for test in self.jira.sorted_by_key(tests) ]))
+                story_row += 1
+
+            row = max(risk_row + 1, story_row) - 1
+            self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk, end_row = row)
+            # self.write_html(report, risk_row, columns['sequence'].column, risk.sequence, end_row = row)
+            # self.write(report, risk_row, columns['source'].column, risk.source, end_row = row)
+            # self.write(report, risk_row, columns['harm'].column, risk.harm, end_row = row)
+            # self.write(report, risk_row, columns['hazard'].column, risk.hazard, end_row = row)
+            self.write(report, risk_row, columns['hazard_category'].column, risk.hazard_category, end_row = row)
+            self.write(report, risk_row, columns['initial_severity'].column, risk.initial_severity, end_row = row)
+            # self.write(report, risk_row, columns['initial_probability'].column, risk.initial_probability, end_row = row)
+            self.write(report, risk_row, columns['initial_risk'].column, risk.initial_risk, end_row = row)
+            # self.write(report, risk_row, columns['residual_severity'].column, risk.residual_severity, end_row = row)
+            # self.write(report, risk_row, columns['residual_probability'].column, risk.residual_probability, end_row = row)
+            self.write(report, risk_row, columns['residual_risk'].column, risk.residual_risk, end_row = row)
+            row += 1
+
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['low'], 'format': self.formats['low_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['medium'], 'format': self.formats['medium_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['high'], 'format': self.formats['high_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
+        self.set_paper(report, row, len(columns))
+        self.set_header_and_footer(report)
+        logger.info(f'total of {total_risks} risks')
+        for key, count in total_initial_scores.items():
+            logger.info(f'total of initial risk {key.name}: {self.percentage(total_risks, count)} risks')
+        for key, count in total_residual_scores.items():
+            logger.info(f'total of residual risk {key.name}: {self.percentage(total_risks, count)} risks')
+        logger.info(f"done adding report sheet '{props['name']}'")
+
+    #
     # bugs
     #
     def add_bugs_sheet(self, book: xlsxwriter.Workbook, props: dict):
@@ -437,10 +508,13 @@ class Excel(plugins.output.OutputGenerator):
             sheet.write(row, col, value, format or self.formats['base'])
 
     def write_key_and_summary(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None, end_col: int = None) -> None:
-        self.write_url(sheet, row, col, issue, end_row, end_col)
+        self.write_key(sheet, row, col, issue, end_row, end_col)
         self.write_html(sheet, row, col + 1, issue.summary, end_row)
         if issue.is_test:
             self.write_status(sheet, row, col + 2, issue, end_row)
+
+    def write_key(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None, end_col: int = None) -> None:
+        self.write_url(sheet, row, col, issue, end_row, end_col)
 
     def write_url(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None, end_col: int = None) -> None:
         self.merge(sheet, row, col, end_row, end_col)
