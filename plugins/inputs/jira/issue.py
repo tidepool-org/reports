@@ -27,7 +27,7 @@ class JiraIssue(JiraBase):
 
     @property
     def raw_description(self) -> str:
-        return self.markdown.convert(self.fields.get('description', ''))
+        return self.markdown.convert(self.fields.get('description') or '')
 
     @property
     def fix_versions(self) -> List[str]:

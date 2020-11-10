@@ -35,8 +35,14 @@ class HtmlToExcel(html.parser.HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         if tag == 'a':
-            href = next(attr[1] for attr in attrs if attr[0] == 'href')
-            self.add_node(HyperLink(href))
+            href = ''
+            title = ''
+            for attr, value in attrs:
+                if attr == 'href':
+                    href = value
+                elif attr == 'title':
+                    title = value
+            self.add_node(HyperLink(href, title))
 
     def handle_endtag(self, tag):
         self.last_node.close()

@@ -6,7 +6,7 @@ import re
 from .base_segment import BaseSegment
 
 class HyperLink(BaseSegment):
-    def __init__(self, url, text = None):
+    def __init__(self, url, text = ''):
         super().__init__()
         self.url = url
         self.text = text

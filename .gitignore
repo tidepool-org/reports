@@ -4,4 +4,4 @@ __pycache__
 *.log
 *.docx
 *.pdf
-doit.db
+.doit.db

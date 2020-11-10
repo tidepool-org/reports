@@ -325,6 +325,8 @@ class Excel(plugins.output.OutputGenerator):
             story_row = row
             for mitigation in self.jira.sorted_by_key(risk.mitigations):
                 self.write_key_and_summary(report, story_row, columns['mitigation_key'].column, mitigation)
+                logger.debug(f"""{mitigation.key}: '{mitigation.description}'""")
+                self.write_html(report, story_row, columns['mitigation_description'].column, mitigation.description)
                 story_row += 1
 
             row = max(risk_row + 1, story_row) - 1
