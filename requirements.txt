@@ -9,3 +9,4 @@ python-dotenv==0.14.0
 pyyaml-include==1.2
 pluginlib==0.8.0
 doit==0.33.1
+boto3==1.16.15

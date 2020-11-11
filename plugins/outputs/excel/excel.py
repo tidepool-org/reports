@@ -463,8 +463,9 @@ class Excel(plugins.output.OutputGenerator):
 
         # tests
         row = 1
-        for test_report in self.test_reports.reports.values():
+        for report_name, test_report in self.test_reports.reports.items():
             for test in sorted(test_report.test_cases, key = attrgetter('suite', 'name')):
+                self.write(report, row, columns['test_report'].column, report_name)
                 self.write(report, row, columns['test_suite'].column, test.suite)
                 self.write(report, row, columns['test_case'].column, test.name)
                 self.write(report, row, columns['time'].column, test.time)
