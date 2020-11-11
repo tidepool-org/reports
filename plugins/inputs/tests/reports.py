@@ -8,6 +8,7 @@ import time
 from functools import cached_property
 from typing import List
 import boto3
+from botocore import UNSIGNED
 from botocore.config import Config
 
 import plugins.input
@@ -27,7 +28,7 @@ class TestReports(plugins.input.InputSource):
         self.cache_refresh = int(self.config['cache']['refresh'])
         config = Config(
             region_name = self.config['reports']['region'],
-            signature_version = 'v3',
+            signature_version = UNSIGNED,
             retries = {
                 'max_attempts': 10,
                 'mode': 'standard'
