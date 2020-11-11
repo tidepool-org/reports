@@ -25,20 +25,24 @@ class Excel(plugins.output.OutputGenerator):
     _alias_ = 'Excel'
 
     @property
+    def labels(self):
+        return self.config['labels']
+
+    @property
     def generated_date(self):
         return self.config['generated'].astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')
 
     @property
     def passed(self):
-        return self.config['labels']['passed']
+        return self.labels['passed']
 
     @property
     def blocked(self):
-        return self.config['labels']['blocked']
+        return self.labels['blocked']
 
     @property
     def verified(self):
-        return self.config['labels']['verified']
+        return self.labels['verified']
 
     @property
     def properties(self):
@@ -118,18 +122,9 @@ class Excel(plugins.output.OutputGenerator):
                 verified = False
 
                 # tests, sorted by issue key
-                test_row = story_row
-                for test in self.jira.sorted_by_key(story.tests):
-                    log_issue(test, 2)
-                    self.write_key_and_summary(report, test_row, columns['test_key'].column, test)
-                    if test.is_done:
-                        verified = True
-                    test_row += 1
-                if test_row == story_row:
-                    self.write_status(report, story_row, columns['test_status'].column, story)
-                    if story.is_done:
-                        verified = True
+                test_row, verified = self.write_tests(report, story_row, columns['test_key'].column, story)
 
+                # story summary, possibly across many rows
                 row = max(story_row + 1, test_row) - 1
                 self.write_key_and_summary(report, story_row, columns['story_key'].column, story, end_row = row)
                 story_row = row + 1
@@ -139,11 +134,7 @@ class Excel(plugins.output.OutputGenerator):
 
             risk_row = req_row
             if columns.get('risk_key'):
-                # risks, sorted by issue key
-                for risk in self.jira.sorted_by_key(self.jira.exclude_junk(req.risks, enforce_versions = False)):
-                    log_issue(risk, 1)
-                    self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk)
-                    risk_row += 1
+                risk_row, mitigated = self.write_risks(report, risk_row, columns['risk_key'].column, req)
 
             row = max(req_row + 1, risk_row, story_row) - 1
             self.write_id(report, req_row, columns['req_id'].column, req, end_row = row)
@@ -221,27 +212,10 @@ class Excel(plugins.output.OutputGenerator):
                 story_row = row
 
                 # risks within the story, sorted by key
-                risk_row = story_row
-                for risk in self.jira.sorted_by_key(story.risks):
-                    log_issue(risk, 2)
-                    self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk)
-                    risk_row += 1
+                risk_row, mitigated = self.write_risks(report, story_row, columns['risk_key'].column, story)
 
                 # tests within the story, sorted by key
-                test_row = story_row
-                for test in self.jira.sorted_by_key(story.tests):
-                    log_issue(test, 2)
-                    self.write_key_and_summary(report, test_row, columns['test_key'].column, test)
-                    test_row += 1
-
-                # include test strategy, if filled in (mostly for legacy stories)
-                if story.test_strategy:
-                    self.write_html(report, test_row, columns['test_key'].column, story.test_strategy, end_col = columns['test_summary'].column)
-                    if story.is_done:
-                        self.write(report, test_row, columns['test_status'].column, self.passed, self.formats['bold'])
-                    elif story.is_blocked:
-                        self.write(report, test_row, columns['test_status'].column, self.blocked, self.formats['bold'])
-                    test_row += 1
+                test_row, verified = self.write_tests(report, story_row, columns['test_key'].column, story)
 
                 # merge story row to span all risks and tests
                 row = max(story_row + 1, risk_row, test_row) - 1
@@ -396,10 +370,7 @@ class Excel(plugins.output.OutputGenerator):
                     tests.update(mitigation.tests)
                     if len(tests) == 0:
                         tests = stories
-                if len(stories) == 1:
-                    self.write_key(report, story_row, columns['story_keys'].column, stories.pop())
-                else:
-                    self.write(report, story_row, columns['story_keys'].column, ', '.join([ story.key for story in self.jira.sorted_by_key(stories) ]))
+                self.write(report, story_row, columns['story_keys'].column, ', '.join([ story.key for story in self.jira.sorted_by_key(stories) ]))
                 self.write(report, story_row, columns['test_keys'].column, ', '.join([ test.key for test in self.jira.sorted_by_key(tests) ]))
                 story_row += 1
 
@@ -503,6 +474,29 @@ class Excel(plugins.output.OutputGenerator):
         if rows[1] - rows[0] > 0:
             for col in columns:
                 sheet.conditional_format(rows[0], col.column, rows[1], col.column, format)
+
+    def write_tests(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue) -> Tuple[int, bool]:
+        test_row = row
+        verified = False
+        for test in self.jira.sorted_by_key(issue.tests):
+            self.write_key_and_summary(sheet, test_row, col, test)
+            verified = verified or test.is_done
+            test_row += 1
+        if test_row == row: # there were no Xray tests
+            self.write_key(sheet, test_row, col, issue)
+            self.write(sheet, test_row, col + 1, self.labels['see_test_strategy'].format(story_key = issue.key))
+            self.write_status(sheet, test_row, col + 2, issue)
+            verified = verified or issue.is_done
+        return ( test_row, verified )
+
+    def write_risks(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue) -> Tuple[int, bool]:
+        risk_row = row
+        mitigated = False
+        for risk in self.jira.sorted_by_key(self.jira.exclude_junk(issue.risks, enforce_versions = False)):
+            self.write_key_and_summary(sheet, risk_row, col, risk)
+            mitigated = mitigated or risk.is_done
+            risk_row += 1
+        return ( risk_row, mitigated )
 
     def merge(self, sheet: xlsxwriter.worksheet, row: int, col: int, end_row: int = None, end_col: int = None, value = '', format: xlsxwriter.format = None) -> bool:
         end_row = end_row or row

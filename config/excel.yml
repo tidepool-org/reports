@@ -30,9 +30,10 @@ formats:
   page_header: { font_size: 16, bold: true }
   page_footer: { font_size: 12 }
 labels:
-  passed: ✅ PASSED
-  blocked: ❌ BLOCKED
-  verified: ✅ VERIFIED
+  passed: '✅ PASSED'
+  blocked: '❌ BLOCKED'
+  verified: '✅ VERIFIED'
+  see_test_strategy: 'See {story_key} for verification tests'
 risks: # initial_risk and residual_risk prefix strings
   low: Green
   medium: Yellow
