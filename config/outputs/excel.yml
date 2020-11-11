@@ -1,0 +1,54 @@
+properties:
+  title: 'Tidepool Loop 1.0'
+  subject: 'Reports for Regulatory Agency'
+  author: 'Tidepool Project'
+  manager: 'Tapani Otala'
+  company: 'Tidepool Project'
+  keywords: 'traceability,hazard,analysis,verification,test,report'
+  comments: 'Created with Python and atlassian-python-api and xlsxwriter'
+window_size: [ 2500, 1400 ]
+page:
+  paper_size: 5 # US Legal size
+  margins: { left: 0.5, right: 0.5, top: 0.75, bottom: 0.5 }
+  header:
+    left: 'Tidepool Loop 1.0 Reports for Regulatory Agency'
+    center: '{sheet}'
+    right: templates/excel/Tidepool_Logo_Light_Large.png
+  footer:
+    left: 'Generated on {date}'
+    right: 'Page &P of &N'
+formats:
+  # all formats are based on this base format; any fields in them override these settings
+  base: { font_name: Helvetica Neue, font_size: 10, bold: false, text_wrap: true, align: left, valign: top, border: 1 }
+  summary: { } # same as base
+  url: { font_color: blue, underline: 1 }
+  column_header: { font_size: 12, bold: true, font_color: white, bg_color: gray }
+  bold: { bold: true }
+  low_risk: { bg_color: green }
+  medium_risk: { bg_color: yellow }
+  high_risk: { bg_color: red }
+  page_header: { font_size: 16, bold: true }
+  page_footer: { font_size: 12 }
+labels:
+  passed: '✅ PASSED'
+  blocked: '❌ BLOCKED'
+  verified: '✅ VERIFIED'
+  see_test_strategy: 'See {story_key} for verification tests'
+risks: # initial_risk and residual_risk prefix strings
+  low: Green
+  medium: Yellow
+  high: Red
+sheets:
+  # sheet names max 31 characters
+  cover: !include outputs/excel/cover.yml
+  requirements: !include outputs/excel/traceability_summary.yml
+  med_requirements: !include outputs/excel/traceability_report.yml
+  full_requirements: !include outputs/excel/traceability_report_full.yml
+  # risks: !include outputs/excel/hazard_analysis_original.yml
+  risks2: !include outputs/excel/hazard_analysis.yml
+  insulin_fidelity: !include outputs/excel/insulin_fidelity.yml
+  bugs: !include outputs/excel/bugs.yml
+  tests: !include outputs/excel/tests.yml
+  # epics: !include outputs/excel/epics.yml
+output:
+  report: output/report.xlsx

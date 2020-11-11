@@ -1,0 +1,13 @@
+generator: add_requirements_sheet # method name in excel.py
+name: 'Traceability Report'
+aggregate_risks: true
+columns:
+  - { width: 7,  key: req_id,          label: 'Req ID' }
+  - { width: 11, key: req_key,         label: 'Req Key' }
+  - { width: 50, key: req_summary,     label: 'Req Feature' }
+  - { width: 50, key: req_description, label: 'Req Description' }
+  - { width: 11, key: story_key,       label: 'Story Key' }
+  - { width: 50, key: story_summary,   label: 'Story Summary' }
+  - { width: 11, key: test_key,        label: 'Test Key' }
+  - { width: 50, key: test_summary,    label: 'Test Summary' }
+  - { width: 11, key: test_status,     label: 'Test Status' }

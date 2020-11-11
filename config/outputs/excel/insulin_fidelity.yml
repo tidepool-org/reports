@@ -1,0 +1,22 @@
+generator: add_insulin_fidelity_sheet # method name in excel.py
+name: 'Insulin Fidelity'
+filter: [ TLR-552,TLR-548,TLR-576,TLR-577,TLR-575,TLR-196,TLR-283,TLR-313 ]
+columns:
+  - { width: 11, key: risk_key,             label: 'Risk Key' }
+  - { width: 50, key: risk_summary,         label: 'Hazardous Situation' }
+  # - { width: 25, key: source,               label: 'Source' }
+  # - { width: 30, key: sequence,             label: 'Sequence of Events' }
+  # - { width: 25, key: harm,                 label: 'Harm' }
+  # - { width: 25, key: hazard,               label: 'Hazard' }
+  - { width: 13, key: hazard_category,      label: 'Hazard Category' }
+  - { width: 12, key: initial_severity,     label: 'Initial Severity' }
+  # - { width: 12, key: initial_probability,  label: 'Initial Probability' }
+  - { width: 11, key: initial_risk,         label: 'Initial Risk Score' }
+  # - { width: 12, key: residual_severity,    label: 'Residual Severity' }
+  # - { width: 12, key: residual_probability, label: 'Residual Probability' }
+  - { width: 11, key: residual_risk,        label: 'Residual Risk Score' }
+  - { width: 7,  key: mitigation_id,        label: 'Req ID' }
+  - { width: 11, key: mitigation_key,       label: 'Req Key' }
+  - { width: 50, key: mitigation_summary,   label: 'Requirement Description' }
+  - { width: 40, key: story_keys,           label: 'Work Tickets' }
+  - { width: 40, key: test_keys,            label: 'Verification Tickets' }

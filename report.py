@@ -23,10 +23,15 @@ from dotenv import load_dotenv
 import yaml
 from yamlinclude import YamlIncludeConstructor
 from plugins import plugin_loader
-YamlIncludeConstructor.add_to_loader_class(loader_class = yaml.SafeLoader, base_dir = '.')
+
+BASE_DIR = os.path.dirname(__file__)
+CONF_DIR = os.path.join(BASE_DIR, 'config')
+OUTPUT_DIR = os.path.join(BASE_DIR, 'output')
+YamlIncludeConstructor.add_to_loader_class(loader_class = yaml.SafeLoader, base_dir = CONF_DIR)
 load_dotenv()
 
-logging.config.fileConfig('logging.conf')
+os.makedirs(OUTPUT_DIR, exist_ok = True)
+logging.config.fileConfig(os.path.join(CONF_DIR, 'logging.conf'))
 logger = logging.getLogger('report')
 
 def read_config(filename: str):
@@ -53,7 +58,7 @@ def main():
     logger.info('Tidepool Report Generator v0.1')
     logger.debug('parsing arguments')
     parser = argparse.ArgumentParser(description = 'Generate Tidepool Loop reports')
-    default_config_file = 'report.yml'
+    default_config_file = os.path.join(CONF_DIR, 'report.yml')
     parser.add_argument('--config', help = f'configuration file (default: {default_config_file})', default = default_config_file)
     parser.add_argument('--refresh', action = 'store_true', help = 'force a refresh of cached data')
     parser.add_argument('--cache', '--no-cache', dest = 'cache', default = True, action = NegateAction, nargs = 0, help = 'cache data')

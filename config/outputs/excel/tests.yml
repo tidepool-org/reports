@@ -1,0 +1,8 @@
+generator: add_tests_sheet # method name in excel.py
+name: 'Automated Tests'
+columns:
+  - { width: 30, key: test_report,          label: 'Test Report' }
+  - { width: 60, key: test_suite,           label: 'Test Suite' }
+  - { width: 60, key: test_case,            label: 'Test Case' }
+  - { width: 8, key: time,                  label: 'Time' }
+  - { width: 11, key: status,               label: 'Status' }

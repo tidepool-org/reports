@@ -1,0 +1,7 @@
+generator: add_bugs_sheet # method name in excel.py
+name: 'Open Defects'
+columns:
+  - { width: 11, key: bug_key,              label: 'Defect Key' }
+  - { width: 70, key: bug_summary,          label: 'Defect Summary' }
+  - { width: 11, key: bug_status,           label: 'Defect Status' }
+  - { width: 25, key: fix_version,          label: 'Fix Version' }

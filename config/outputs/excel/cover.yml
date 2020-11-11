@@ -1,0 +1,37 @@
+generator: add_cover_sheet # method name in excel.py
+name: Cover
+width: 120 # column width
+items:
+  title:
+    position: A1
+    text: 'Tidepool Loop 1.0 Reports for Regulatory Agency'
+    format: { font_size: 20, bold: true, border: 0 }
+  subtitle:
+    position: A2
+    text: 'Generated on {date}'
+    format: { font_size: 14, bold: true, border: 0 }
+  introduction:
+    position: A3
+    text: |-
+
+      This document is intended to show the detail of the Tidepool’s Quality Management System for Tidepool Loop. The document was automatically generated from Tidepool’s quality management system. The source documents are in Jira, our project management system. Information was pulled from these projects:
+      • Tidepool Loop Functional Requirements - TLFR
+      • Tidepool Loop Risks - TLR
+      • Tidepool Loop Work Tickets - LOOP
+
+      Tabs in this spreadsheet:
+      • Traceability: This spreadsheet tab demonstrates traceability to and from all Tidepool Loop functional requirements. It has columns for each requirement, associated risks, design and development, verification tests, and test status.
+        • For more information on Tidepool Loop’s requirements, please see Section 16 of the main pre-marketing notification document.
+      • Hazard Analysis: This spreadsheet tab demonstrates Tidepool’s Risk and Hazard analysis of Tidepool Loop. Columns are included for each risk, including a summary, the potential harm and hazard category, risk assessment prior to mitigation, details of any mitigation, and risk assessment post-mitigation.
+    
+    format: { border: 0 }
+  splash1:
+    position: A4
+    image: templates/excel/Tidepool Loop iPhone X - Generic Pump.png
+    height: 250 # row height
+    options: { object_position: 3, x_offset: 150, y_offset: 0, x_scale: 0.25, y_scale: 0.25 }
+  splash2:
+    position: A4
+    image: templates/excel/Watch 38mm + Loop Home.png
+    height: 250 # row height
+    options: { object_position: 3, x_offset: 500, y_offset: 100, x_scale: 0.25, y_scale: 0.25 }
