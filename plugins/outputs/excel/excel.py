@@ -361,7 +361,7 @@ class Excel(plugins.output.OutputGenerator):
                 tests = set()
                 if mitigation.is_func_requirement:
                     self.write_id(report, story_row, columns['mitigation_id'].column, mitigation)
-                    self.write_key_and_summary(report, story_row, columns['mitigation_key'].column, mitigation)
+                    self.write_html(report, story_row, columns['mitigation_description'].column, mitigation.description)
                     for story in mitigation.defines: # add all stories, and all tests that verify those stories
                         stories.add(story)
                         tests.update(story.tests)
@@ -375,7 +375,8 @@ class Excel(plugins.output.OutputGenerator):
                 story_row += 1
 
             row = max(risk_row + 1, story_row) - 1
-            self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk, end_row = row)
+            self.write_key(report, risk_row, columns['risk_key'].column, risk, end_row = row)
+            self.write(report, risk_row, columns['risk_summary'].column, risk.hazard, end_row = row)
             # self.write_html(report, risk_row, columns['sequence'].column, risk.sequence, end_row = row)
             # self.write(report, risk_row, columns['source'].column, risk.source, end_row = row)
             # self.write(report, risk_row, columns['harm'].column, risk.harm, end_row = row)
