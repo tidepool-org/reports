@@ -29,51 +29,48 @@ Go to your [Atlassian account security settings](https://id.atlassian.com/manage
 $ export JIRA_USERNAME={username}
 $ export JIRA_API_TOKEN={token}
 $ python3 report.py --help
-2020-11-02T19:55:53 INFO [report] Tidepool Report Generator v0.1
-usage: report.py [-h] [--config CONFIG] [--html] [--pdf] [--excel] [--graph] [--refresh] [--cache] [--zip]
+2020-11-11T12:23:40 INFO [report] Tidepool Report Generator v0.1
+usage: report.py [-h] [--config CONFIG] [--refresh] [--cache] [--zip] [--d3js] [--excel] [--graphviz] [--html] [--pdf]
 
-Generate Verification Test Report
+Generate Tidepool Loop reports
 
 optional arguments:
   -h, --help           show this help message and exit
-  --config CONFIG      configuration file (default: report.yml)
-  --html               generate HTML output
-  --pdf                generate PDF output from HTML
-  --excel              generate XLSX output
-  --graph              generate graph output
+  --config CONFIG      configuration file (default: ./config/report.yml)
   --refresh            force a refresh of cached data
   --cache, --no-cache  cache data
   --zip, --no-zip      combine output files into a ZIP file
+  --d3js               generate D3.js output
+  --excel              generate Excel output
+  --graphviz           generate GraphViz output
+  --html               generate HTML output
+  --pdf                generate PDF output from HTML
 ```
 
 ## Development
 
-The tool uses several libraries to do the actual work:
-
-
-| Library | Usage |
-|---------|-------|
-| [`python-dotenv`](https://github.com/theskumar/python-dotenv) | Support for `.env` files |
-| [`PyYAML`](https://github.com/yaml/pyyaml) | YAML support |
-| [`atlassian-python-api`](https://github.com/atlassian-api/atlassian-python-api) | access Atlassian Jira |
-| [`markdown`](https://github.com/Python-Markdown/markdown) | Convert Markdown to HTML |
-| [`Jinja2`](https://github.com/pallets/jinja) | HTML template engine, only used with `--html` |
-| [`pdfkit`](https://github.com/JazzCore/python-pdfkit) | PDF renderer, only used with `--pdf`. Depends on `--html` and `wkhtmltopdf` |
-| [`graphviz`](https://github.com/xflr6/graphviz) | GraphViz renderer, only used with `--graph` (experimental) |
-| [`XlsxWriter`](https://github.com/jmcnamara/XlsxWriter) | Excel XLSX renderer, only used with `--excel` |
+The tool uses several Python libraries to do the actual work. See `requirements.txt` for the details.
 
 The script is structured as follows:
 
 ```
-report.yml       # app configuration file
-logging.conf     # logging configuration file
-report.py
-|- jira          # classes for interacting with Jira
-|  |- *.py
-|- generators    # generators corresponding to each generator CLI flag
-|  |- *.py
-|- templates     # template files
-   |- *.*
+|- dodo.py          # doit recipes
+|- report.py        # main script
+|- plugins          # all plug-ins
+|  |- input.py      # input source plug-in base class
+|  |- output.py     # output generator plug-in base class
+|  |- inputs/*.py   # input source plug-ins
+|  |- outputs/*.py  # output generator plug-ins
+|- templates        # template files
+|  |- *.*
+|- config
+|  |- report.yml    # app configuration file
+|  |- logging.conf  # logging configuration file
+|  |- inputs/*.yml  # input source configuration files
+|  |- outputs/*.yml # output generator configuration files
+|- scripts          # utility scripts
+|- cache            # cached input files (Jira data, test reports)
+|- output           # generated output files
 ```
 
 ## Templates
