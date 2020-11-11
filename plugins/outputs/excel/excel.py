@@ -137,18 +137,20 @@ class Excel(plugins.output.OutputGenerator):
             if verified:
                 total_verified += 1
 
-            # risks, sorted by issue key
             risk_row = req_row
-            for risk in self.jira.sorted_by_key(self.jira.exclude_junk(req.risks, enforce_versions = False)):
-                log_issue(risk, 1)
-                self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk)
-                risk_row += 1
+            if columns.get('risk_key'):
+                # risks, sorted by issue key
+                for risk in self.jira.sorted_by_key(self.jira.exclude_junk(req.risks, enforce_versions = False)):
+                    log_issue(risk, 1)
+                    self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk)
+                    risk_row += 1
 
             row = max(req_row + 1, risk_row, story_row) - 1
             self.write_id(report, req_row, columns['req_id'].column, req, end_row = row)
             self.write_key_and_summary(report, req_row, columns['req_key'].column, req, end_row = row)
             self.write_html(report, req_row, columns['req_description'].column, req.description, end_row = row)
-            self.merge(report, req_row, columns['gap'].column, end_row = row)
+            if columns.get('gap'):
+                self.merge(report, req_row, columns['gap'].column, end_row = row)
             row += 1
             total_requirements += 1
 
