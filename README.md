@@ -29,22 +29,28 @@ Go to your [Atlassian account security settings](https://id.atlassian.com/manage
 $ export JIRA_USERNAME={username}
 $ export JIRA_API_TOKEN={token}
 $ python3 report.py --help
-2020-11-11T12:23:40 INFO [report] Tidepool Report Generator v0.1
-usage: report.py [-h] [--config CONFIG] [--refresh] [--cache] [--zip] [--d3js] [--excel] [--graphviz] [--html] [--pdf]
+usage: report.py [--version] [-h] [--verbose] [--config CONFIG] [--refresh] [--cache] [--zip] [--tag TAG] [--d3js] [--excel] [--graphviz] [--html] [--pdf]
 
 Generate Tidepool Loop reports
 
-optional arguments:
-  -h, --help           show this help message and exit
-  --config CONFIG      configuration file (default: ./config/report.yml)
-  --refresh            force a refresh of cached data
-  --cache, --no-cache  cache data
-  --zip, --no-zip      combine output files into a ZIP file
-  --d3js               generate D3.js output
-  --excel              generate Excel output
-  --graphviz           generate GraphViz output
-  --html               generate HTML output
-  --pdf                generate PDF output from HTML
+general options:
+  --version             show version information
+  -h, --help            show this help message and exit
+  --verbose, --no-verbose
+                        enable verbose mode
+  --config CONFIG       configuration file (default: ./config/report.yml)
+  --refresh, --no-refresh
+                        force a refresh of cached data
+  --cache, --no-cache   cache data
+  --zip, --no-zip       combine output files into a ZIP file
+  --tag TAG             set arbitrary tag for use by templates
+
+output options:
+  --d3js                generate D3.js output
+  --excel               generate Excel output
+  --graphviz            generate GraphViz output
+  --html                generate HTML output
+  --pdf                 generate PDF output from HTML
 ```
 
 ## Development
