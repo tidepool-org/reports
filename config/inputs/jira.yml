@@ -41,7 +41,7 @@ issue_types:
   subtask:             { ids: [ 10003 ], projects: [ LOOP, TLR, TLFR, IFU ] }
   bug:                 { ids: [ 10004 ], projects: [ LOOP ] }
   feedback:            { ids: [ 10005 ], projects: [ LOOP ] }
-  test:                { ids: [ 10016, 10019, 10021 ], projects: [ LOOP ] }
+  test:                { ids: [ 10016, 10019, 10021, 10017, 10018 ], projects: [ LOOP ] } # Test, Test Execution, Sub Test Execution, Test Set, Test Plan
   func_requirement:    { ids: [ 10024 ], projects: [ TLFR ] }
   user_requirement:    { ids: [ 10027 ], projects: [ TLFR ] }
   risk:                { ids: [ 10001, 10002 ], projects: [ TLR ] } # yes, same as story

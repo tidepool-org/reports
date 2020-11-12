@@ -368,8 +368,8 @@ class Excel(plugins.output.OutputGenerator):
                 else: # story or IFU
                     stories.add(mitigation)
                     tests.update(mitigation.tests)
-                    if len(tests) == 0:
-                        tests = stories
+                if len(tests) == 0: # if there are no tests, then the stories cover the testing
+                    tests = stories
                 self.write(report, story_row, columns['story_keys'].column, ', '.join([ story.key for story in self.jira.sorted_by_key(stories) ]))
                 self.write(report, story_row, columns['test_keys'].column, ', '.join([ test.key for test in self.jira.sorted_by_key(tests) ]))
                 story_row += 1
