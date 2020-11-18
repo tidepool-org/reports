@@ -5,7 +5,7 @@
 parameters:
   fix_version: 'FDA 510(k) Sub'
   include_component: 'iAGC'
-  exclude_component: ExcludeFromReport
+  exclude_component: 'ExcludeFromReport'
 queries:
   func_requirements: project=TLFR AND issuetype="Functional Requirement" AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
   user_requirements: project=TLFR AND issuetype="User Requirement" AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
