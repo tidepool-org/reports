@@ -34,7 +34,7 @@ parameters:
 
 This sheet shows a summary of the tracebility matrix that starts from a functional requirement and traces it to its implementation. Here is how it is built:
 
-1. Get a list of all `TLFR` issues (=functional requirements), regardless of `fix_version`.
+1. Get a list of all `TLFR` issues (=functional requirements), regardless of `fix_version`, that have `Dev Ready` or `Active` status.
 
 2. Filter out any that are closed as `junk_resolution`.
 
