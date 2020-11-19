@@ -4,6 +4,108 @@ This repo contains a Python script that can generate various reports from Tidepo
 
 [![Build Status](https://travis-ci.com/tidepool-org/reports.svg?branch=main)](https://travis-ci.com/tidepool-org/reports)
 
+## Reports
+
+This covers the reports found in the Excel output.
+
+The reports pull data from the following Jira projects related to Tidepool Loop:
+
+| Key | Description |
+| --- | ----------- |
+| [`TLFR`](https://tidepool.atlassian.net/projects/TLFR) | Functional (and User) Requirements |
+| [`TLR`](https://tidepool.atlassian.net/projects/TLR) | Risks |
+| [`LOOP`](https://tidepool.atlassian.net/projects/LOOP) | Development Stories, Tests and Bugs |
+| [`IFU`](https://tidepool.atlassian.net/projects/IFU) | Instructions for Use |
+
+The Jira [JQL](https://www.atlassian.com/software/jira/guides/expand-jira/jql#advanced-search) queries that are used to find the basic lists of issues can be found in the [`jira.yml`](config/inputs/jira.yml) configuration file, along with some parameters that are shared across queries. Here are notable parameters used in those queries:
+
+```
+filters:
+  junk_resolution: [ 'Duplicate', "Won't Do", 'Deprecated', 'Cannot Reproduce' ]
+  done_status: [ 'Waiting for Approval', 'Waiting for Deployment', 'Closed' ]
+  blocked_status: [ 'Blocked' ]
+parameters:
+  fix_version: 'FDA 510(k) Sub'
+  include_component: 'iAGC'
+  exclude_component: 'ExcludeFromReport'
+```
+
+### Traceability Summary
+
+This sheet shows a summary of the tracebility matrix that starts from a functional requirement and traces it to its implementation. Here is how it is built:
+
+1. Get a list of all `TLFR` issues (=functional requirements), regardless of `fix_version`.
+
+2. Filter out any that are closed as `junk_resolution`.
+
+3. Sort the list in ascending order by requirement ID, which is one or more decimal numbers separated by dots (ie. `1.10.1` appears after `1.9.2`).
+
+4. List the `TLFR` issues. For each of them:
+
+    1. Get a list of all LOOP issues (=development tasks) that are linked to the requirement with a `defines` relationship **and** matches the `fix_version`.
+    
+    2. Filter out any that are closed as `junk_resolution`.
+
+    3. Sort the list by issue key, which is the project key (`LOOP`) followed by a decimal number (ie. `LOOP-123` appears after `LOOP-21`).
+    
+    4. List each task. If it has `done_status`, mark it as "✅ VERIFIED"
+
+### Traceability Report
+
+This sheet shows a more detailed version of the tracebility matrix. It is built in the same way as the summary report above, with the addition of tests executed to verify the development tasks and therefore the functional requirement. Here are the additional steps:
+
+1. For each LOOP issue (=development task):
+
+    1. Get a list of all tests that are linked to the LOOP development task. Tests are also in the LOOP project, but have different issue type.
+
+    2. Sort the list by issue key, which is the project key (`LOOP`) followed by a decimal number (ie. `LOOP-123` appears after `LOOP-21`).
+
+    3. List each test. If it has `done_status`, mark it as "✅ PASSED". If it has `blocked_status`, mark it as "❌ BLOCKED"
+
+### Full Traceability Report
+
+This sheet shows a fully detailed version of the tracebility matrix. It is built in the same way as the traceability report above, with the addition of risks. Here are the additional steps:
+
+1. For each `TLFR` issue (=functional requirement):
+
+    1. Get a list of all TLR issues (=risks) that are linked to that requirement with a `mitigates` relationship. This includes both risks directly linked to the `TLFR` issue, as well as any risks linked to any of the LOOP issues that are defined by that `TLFR` issue. Each `TLR` issue will appear only once in the list.
+
+    2. Sort the list by issue key, which is the project key (`TLR`) followed by a decimal number (ie. `TLR-123` appears after `TLR-21`).
+
+    3. List each risk.
+
+### Hazard Analysis
+
+This sheet shows a hazard analysis, starting from the risks and tracing through the initial risk score, mitigations, and the residual risk score. Here are the steps:
+
+1. Get list of all `TLR` issues (=risks), regardless of `fix_verson`.
+
+2. Filter out any that are closed as `junk_resolution`.
+
+3. Sort the list by the harm caused by that risk.
+
+4. List the `TLR` issues. For each of them:
+
+    1. Get a list of all _mitigations_ linked to this risk with a `mitigates` relationship. Mitigation is defined as follows:
+
+        1. If the mitigation is a functional requirement (`T`LF`R`), show it.
+
+        2. If the mitigation is a development task (`LOOP`) or instruction for use (`IFU`), check to see if it is defined by one or more functional requirements (`TLFR`). If there is one or more functional requirement (`TLFR`), show those.
+
+        3. Else, show the development task (`LOOP`) or instruction for use (`IFU`) instead.
+
+### Insulin Fidelity
+
+This sheet is a condensed version of the hazard analysis sheet for a subset of risks specifically related to insulin delivery fidelity. It lists each `TLR` risk, and summarizes the mitigating functional requirements (`TLFR`) and related development tasks (`LOOP`) and verification tests (`LOOP`).
+
+### Open Defects
+
+This sheet is a simple list of all open defects (=bugs) in the `LOOP` project, regardless of `fix_version`.
+
+### Automated Tests
+
+This sheet is a simple list of all automated tests reported by the automated builds. Unlike the other sheets, the data for this sheet is pulled from test reports stored in the AWS S3 bucket identified by the [tests.yml](config/inputs/tests.yml) configuration file.
+
 ## Installation
 
 This tool uses some features available in Python 3.8 or later.
