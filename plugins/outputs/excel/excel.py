@@ -375,18 +375,11 @@ class Excel(plugins.output.OutputGenerator):
                 story_row += 1
 
             row = max(risk_row + 1, story_row) - 1
-            self.write_key(report, risk_row, columns['risk_key'].column, risk, end_row = row)
-            self.write(report, risk_row, columns['risk_summary'].column, risk.hazard, end_row = row)
-            # self.write_html(report, risk_row, columns['sequence'].column, risk.sequence, end_row = row)
-            # self.write(report, risk_row, columns['source'].column, risk.source, end_row = row)
-            # self.write(report, risk_row, columns['harm'].column, risk.harm, end_row = row)
-            # self.write(report, risk_row, columns['hazard'].column, risk.hazard, end_row = row)
+            self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk, end_row = row)
+            self.write(report, risk_row, columns['hazard'].column, risk.hazard, end_row = row)
             self.write(report, risk_row, columns['hazard_category'].column, risk.hazard_category, end_row = row)
             self.write(report, risk_row, columns['initial_severity'].column, risk.initial_severity, end_row = row)
-            # self.write(report, risk_row, columns['initial_probability'].column, risk.initial_probability, end_row = row)
             self.write(report, risk_row, columns['initial_risk'].column, risk.initial_risk, end_row = row)
-            # self.write(report, risk_row, columns['residual_severity'].column, risk.residual_severity, end_row = row)
-            # self.write(report, risk_row, columns['residual_probability'].column, risk.residual_probability, end_row = row)
             self.write(report, risk_row, columns['residual_risk'].column, risk.residual_risk, end_row = row)
             row += 1
 
