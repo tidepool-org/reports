@@ -104,12 +104,12 @@ class JiraBase(ABC):
 
     @property
     def is_junk(self) -> bool:
-        return self.resolution in [ 'Duplicate', "Won't Do", 'Deprecated', 'Cannot Reproduce' ]
+        return self.resolution in self.jira.junk_resolution
 
     @property
     def is_done(self) -> bool:
-        return self.status in [ 'Waiting for Approval', 'Waiting for Deployment', 'Closed' ]
+        return self.status in self.jira.done_status
 
     @property
     def is_blocked(self) -> bool:
-        return self.status in [ 'Blocked' ]
+        return self.status in self.jira.blocked_status

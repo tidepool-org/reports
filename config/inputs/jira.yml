@@ -2,12 +2,16 @@
 # base_url: https://tidepool.atlassian.net
 # username: travis-ci@tidepool.org
 # api_token: ...
+filters:
+  junk_resolution: [ 'Duplicate', "Won't Do", 'Deprecated', 'Cannot Reproduce' ]
+  done_status: [ 'Waiting for Approval', 'Waiting for Deployment', 'Closed' ]
+  blocked_status: [ 'Blocked' ]
 parameters:
   fix_version: 'FDA 510(k) Sub'
   include_component: 'iAGC'
   exclude_component: 'ExcludeFromReport'
 queries:
-  func_requirements: project=TLFR AND issuetype="Functional Requirement" AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
+  func_requirements: project=TLFR AND issuetype="Functional Requirement" AND status IN ("Dev Ready", "Active") AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
   user_requirements: project=TLFR AND issuetype="User Requirement" AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
   risks: project=TLR AND issuetype IN (Story, Task) AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
   epics: project=LOOP AND fixVersion="{fix_version}" AND issuetype="Epic" AND (component NOT IN ({exclude_component}) OR component is EMPTY OR component IN ({include_component}))
@@ -16,25 +20,25 @@ queries:
   tests: project=LOOP AND issuetype IN ("Test", "Test Execution", "Sub Test Execution") AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
   instructions: project=IFU AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
 fields:
-  epic_key: customfield_10014
-  functional_requirements: customfield_10132
-  done_criteria: customfield_10072
-  test_strategy: customfield_10036
-  reference_id: customfield_10140
-  source: customfield_10115
-  sequence_of_events: customfield_10144
-  harm: customfield_10089
-  hazard: customfield_10090
-  hazard_category: customfield_10095
-  initial_severity: customfield_10085
-  initial_probability: customfield_10086
-  initial_risk: customfield_10101
-  residual_severity: customfield_10093
-  residual_probability: customfield_10094
-  residual_risk: customfield_10102
-  benefit: customfield_10142
-  risk_level: customfield_10027
-  uea_level: customfield_10028
+  epic_key: customfield_10014 # "Epic Link"
+  functional_requirements: customfield_10132 # "Functional Requirements"
+  done_criteria: customfield_10072 # "Done Criteria"
+  test_strategy: customfield_10036 # "Test Strategy"
+  reference_id: customfield_10140 # "Reference ID"
+  source: customfield_10115 # "Source"
+  sequence_of_events: customfield_10144 # "Sequence of Events"
+  harm: customfield_10089 # SoftComply "Harm"
+  hazard: customfield_10090 # SoftComply "Cause"
+  hazard_category: customfield_10095 # "Hazard Category"
+  initial_severity: customfield_10085 # SoftComply "Severity"
+  initial_probability: customfield_10086 # SoftComply "Probability"
+  initial_risk: customfield_10101 # SoftComply "Risk (initial)"
+  residual_severity: customfield_10093 # SoftComply "Severity (Final)"
+  residual_probability: customfield_10094 # SoftComply "Probability (Final)"
+  residual_risk: customfield_10102 # SoftComply "Risk (residual)"
+  benefit: customfield_10142 # "Requirement ID"
+  risk_level: customfield_10027 # "Risk Level"
+  uea_level: customfield_10028 # "User Experience Assessment Level"
 issue_types:
   epic:                { ids: [ 10000 ], projects: [ LOOP, TLR, TLFR, IFU ] }
   story:               { ids: [ 10001, 10002 ], projects: [ LOOP ] }
