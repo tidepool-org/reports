@@ -98,7 +98,10 @@ class JiraRisk(JiraIssue):
         logger.debug(f'examining {self.key} links: {",".join([ link.key for link in self.links ])}')
         for issue in self.jira.exclude_junk(self.links, enforce_versions = False):
             logger.debug(f'looking at {issue.type} {issue.key} {issue.url}')
-            if (issue.is_story and issue.is_mitigated_by) or issue.is_instruction:
+            if issue.is_func_requirement: # if it's a TLFR, use it directly
+                logger.debug(f'showing issue {issue.key} directly, it is a functional requirement')
+                mitigations.add(issue)
+            elif (issue.is_story and issue.is_mitigated_by) or issue.is_instruction:
                 if len(issue.defined_by) == 0: # has no functional requirements
                     logger.debug(f'showing issue {issue.key} directly, no new functional requirements were found')
                     mitigations.add(issue)
