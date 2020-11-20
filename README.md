@@ -17,7 +17,7 @@ The reports pull data from the following Jira projects related to Tidepool Loop:
 | [`LOOP`](https://tidepool.atlassian.net/projects/LOOP) | Development Stories, Tests and Bugs |
 | [`IFU`](https://tidepool.atlassian.net/projects/IFU) | Instructions for Use |
 
-The Jira [JQL](https://www.atlassian.com/software/jira/guides/expand-jira/jql#advanced-search) queries that are used to find the basic lists of issues can be found in the [`jira.yml`](config/inputs/jira.yml) configuration file, along with some parameters that are shared across queries. Here are notable parameters used in those queries:
+The Jira [JQL](https://www.atlassian.com/software/jira/guides/expand-jira/jql#advanced-search) queries that are used to find the basic lists of issues can be found in the [`jira.yml`](config/inputs/jira.yml) configuration file, along with some parameters that are shared across queries. Here are the parameters used in those queries:
 
 ```
 filters:
