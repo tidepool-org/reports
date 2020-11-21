@@ -127,6 +127,7 @@ class Excel(plugins.output.OutputGenerator):
                 # story summary, possibly across many rows
                 row = max(story_row + 1, test_row) - 1
                 self.write_key_and_summary(report, story_row, columns['story_key'].column, story, end_row = row)
+                self.set_outline(report, story_row, req_row, 1)
                 story_row = row + 1
 
             if verified:
@@ -176,6 +177,7 @@ class Excel(plugins.output.OutputGenerator):
                 self.write_key_and_summary(report, story_row, columns['story_key'].column, story)
                 if story.is_done:
                     self.write(report, story_row, columns['story_status'].column, self.verified, self.formats['bold'])
+                self.set_outline(report, story_row, req_row, 1)
                 story_row += 1
 
             row = max(req_row + 1, story_row) - 1
@@ -252,6 +254,7 @@ class Excel(plugins.output.OutputGenerator):
             for story in self.jira.sorted_by_key(self.jira.exclude_junk(risk.mitigated_by, enforce_versions = False)):
                 log_issue(story, 1)
                 self.write_key_and_summary(report, story_row, columns['mitigation_key'].column, story)
+                self.set_outline(report, story_row, row, 1)
                 story_row += 1
 
             row = max(risk_row + 1, story_row) - 1
@@ -303,6 +306,7 @@ class Excel(plugins.output.OutputGenerator):
                 self.write_key_and_summary(report, story_row, columns['mitigation_key'].column, mitigation)
                 logger.debug(f"""{mitigation.key}: '{mitigation.description}'""")
                 self.write_html(report, story_row, columns['mitigation_description'].column, mitigation.description)
+                self.set_outline(report, story_row, row, 1)
                 story_row += 1
 
             row = max(risk_row + 1, story_row) - 1
@@ -372,6 +376,7 @@ class Excel(plugins.output.OutputGenerator):
                     tests = stories
                 self.write(report, story_row, columns['story_keys'].column, ', '.join([ story.key for story in self.jira.sorted_by_key(stories) ]))
                 self.write(report, story_row, columns['test_keys'].column, ', '.join([ test.key for test in self.jira.sorted_by_key(tests) ]))
+                self.set_outline(report, story_row, row, 1)
                 story_row += 1
 
             row = max(risk_row + 1, story_row) - 1
@@ -416,6 +421,7 @@ class Excel(plugins.output.OutputGenerator):
             row += 1
 
         self.set_paper(report, row, len(columns))
+        self.set_autofilter(report, row, len(columns))
         self.set_header_and_footer(report)
         logger.info(f"done adding report sheet '{props['name']}'")
 
@@ -440,6 +446,7 @@ class Excel(plugins.output.OutputGenerator):
                 row += 1
 
         self.set_paper(report, row, len(columns))
+        self.set_autofilter(report, row, len(columns))
         self.set_header_and_footer(report)
         logger.info(f"done adding report sheet '{props['name']}'")
 
@@ -469,12 +476,20 @@ class Excel(plugins.output.OutputGenerator):
             for col in columns:
                 sheet.conditional_format(rows[0], col.column, rows[1], col.column, format)
 
+    def set_outline(self, sheet: xlsxwriter.worksheet, row: int, start_row: int, level: int = 1) -> None:
+        if row > start_row:
+            sheet.set_row(row, options = { 'level': level })
+
+    def set_autofilter(self, sheet: xlsxwriter.worksheet, rows: int, cols: int) -> None:
+        sheet.autofilter(0, 0, rows - 1, cols - 1)
+
     def write_tests(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue) -> Tuple[int, bool]:
         test_row = row
         verified = False
         for test in self.jira.sorted_by_key(issue.tests):
             self.write_key_and_summary(sheet, test_row, col, test)
             verified = verified or test.is_done
+            self.set_outline(sheet, test_row, row, 1)
             test_row += 1
         if test_row == row: # there were no Xray tests
             self.write_key(sheet, test_row, col, issue)
@@ -489,6 +504,7 @@ class Excel(plugins.output.OutputGenerator):
         for risk in self.jira.sorted_by_key(self.jira.exclude_junk(issue.risks, enforce_versions = False)):
             self.write_key_and_summary(sheet, risk_row, col, risk)
             mitigated = mitigated or risk.is_done
+            self.set_outline(sheet, risk_row, row, 1)
             risk_row += 1
         return ( risk_row, mitigated )
 
@@ -515,7 +531,10 @@ class Excel(plugins.output.OutputGenerator):
 
     def write_url(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None, end_col: int = None) -> None:
         self.merge(sheet, row, col, end_row, end_col)
-        sheet.write_url(row, col, issue.url, self.formats['url'], issue.key, issue.url)
+        if self.config['links']:
+            sheet.write_url(row, col, issue.url, self.formats['url'], issue.key, issue.url)
+        else:
+            sheet.write(row, col, issue.key, self.formats['base'])
 
     def write_html(self, sheet: xlsxwriter.worksheet, row: int, col: int, value, end_row: int = None, end_col: int = None) -> None:
         html = HtmlToExcel().parse(value)
@@ -538,7 +557,8 @@ class Excel(plugins.output.OutputGenerator):
         sheet.center_horizontally()
         sheet.fit_to_pages(1, 0)  # 1 page wide and as long as necessary.
         sheet.print_area(0, 0, rows - 1, columns - 1)
-        sheet.set_default_row(hide_unused_rows = True)
+        # sheet.set_default_row(hide_unused_rows = True)
+        sheet.outline_settings(visible = True, symbols_below = False, symbols_right = False, auto_style = False)
 
     def format_text(self, sheet: xlsxwriter.worksheet, text: str) -> str:
         if text:

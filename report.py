@@ -77,8 +77,9 @@ def main():
     group = parser.add_argument_group('general options')
     group.add_argument('--version', action = VersionAction, nargs = 0, help = 'show version information')
     group.add_argument('-h', '--help', action = HelpAction, nargs = 0, help = 'show this help message and exit')
-    group.add_argument('--verbose', '--no-verbose', action = NegateAction, nargs = 0, help = 'enable verbose mode')
-    group.add_argument('--config', help = f'configuration file (default: {default_config_file})', default = default_config_file)
+    group.add_argument('--verbose', '--no-verbose', dest = 'verbose', default = False, action = NegateAction, nargs = 0, help = 'enable verbose mode')
+    group.add_argument('--links', '--no-links', dest = 'links', default = True, action = NegateAction, nargs = 0, help = 'enable hyperlinks')
+    group.add_argument('--config', dest = 'config', default = default_config_file, help = f'configuration file (default: {default_config_file})')
     group.add_argument('--refresh', '--no-refresh', dest = 'refresh', default = False, action = NegateAction, nargs = 0, help = 'force a refresh of cached data')
     group.add_argument('--cache', '--no-cache', dest = 'cache', default = True, action = NegateAction, nargs = 0, help = 'cache data')
     group.add_argument('--zip', '--no-zip', dest = 'zip', default = True, action = NegateAction, nargs = 0, help = 'combine output files into a ZIP file')
@@ -97,21 +98,21 @@ def main():
     logger.debug('parsing arguments')
 
     config = read_config(args.config)
-    generated = datetime.today()
+    options = { 'verbose': args.verbose, 'generated': datetime.today(), 'refresh_cache': args.refresh, 'tag': args.tag, 'links': args.links }
 
     # initialize input sources
     logger.debug('connecting to input sources')
     inputs = { }
     for plugin in plugin_loader.plugins.input.values():
         logger.debug(f'connecting to {plugin.name}')
-        inputs[plugin.key] = plugin({ 'generated': generated, 'refresh_cache': args.refresh, **config[plugin.key] })
+        inputs[plugin.key] = plugin({ **config[plugin.key], **options })
 
     logger.debug('execute selected output generators')
     files = set()
     for plugin_name in (args.outputs or [ ]):
         plugin = plugin_loader.get_plugin('output', plugin_name)
         logger.info(f'generating {plugin.name} output')
-        files.update(plugin({ 'generated': generated, **config[plugin.key], 'tag': args.tag }, inputs).generate())
+        files.update(plugin({ **config[plugin.key], **options }, inputs).generate())
         logger.info(f'done generating {plugin.name} output')
 
     if args.zip:
@@ -120,7 +121,7 @@ def main():
             for file in files:
                 zipfile.write(file, arcname = os.path.basename(file))
 
-    logger.info(f"done, elapsed time {datetime.today() - generated}")
+    logger.info(f"done, elapsed time {datetime.today() - options['generated']}")
 
 if __name__ == '__main__':
     main()
