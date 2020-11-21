@@ -1,6 +1,6 @@
 generator: add_insulin_fidelity_sheet # method name in excel.py
 name: 'Insulin Fidelity'
-filter: [ TLR-548,TLR-552,TLR-575,TLR-576,TLR-577,TLR-578,TLR-579,TLR-580,TLR-581 ]
+filter: [ TLR-548,TLR-552,TLR-576,TLR-577,TLR-578,TLR-579,TLR-581 ]
 columns:
   - { width: 11, key: risk_key,               label: 'Risk Key' }
   - { width: 50, key: risk_summary,           label: 'Hazardous Situation' }
