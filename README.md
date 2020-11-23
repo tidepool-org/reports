@@ -128,10 +128,13 @@ This tool uses environment variables `JIRA_BASE_URL`, `JIRA_USERNAME`, and `JIRA
 Go to your [Atlassian account security settings](https://id.atlassian.com/manage-profile/security) to create a new Jira API token.
 
 ```shell
+$ git clone https://github.com/tidepool-org/reports.git
+$ cd reports
 $ export JIRA_USERNAME={username}
 $ export JIRA_API_TOKEN={token}
-$ python3 report.py --help
-usage: report.py [--version] [-h] [--verbose] [--config CONFIG] [--refresh] [--cache] [--zip] [--tag TAG] [--d3js] [--excel] [--graphviz] [--html] [--pdf]
+$ ./report.py --help
+usage: report.py [--version] [-h] [--verbose] [--links] [--config CONFIG] [--refresh] [--cache] [--zip] [--tag TAG]
+                 [--d3js] [--excel] [--graphviz] [--html] [--pdf]
 
 Generate Tidepool Loop reports
 
@@ -139,13 +142,14 @@ general options:
   --version             show version information
   -h, --help            show this help message and exit
   --verbose, --no-verbose
-                        enable verbose mode
+                        enable verbose mode (default: off)
+  --links, --no-links   enable hyperlinks (default: on)
   --config CONFIG       configuration file (default: ./config/report.yml)
   --refresh, --no-refresh
-                        force a refresh of cached data
-  --cache, --no-cache   cache data
-  --zip, --no-zip       combine output files into a ZIP file
-  --tag TAG             set arbitrary tag for use by templates
+                        force a refresh of cached data (default: off)
+  --cache, --no-cache   cache data (default: on)
+  --zip, --no-zip       combine output files into a ZIP file (default: off)
+  --tag TAG             set arbitrary tag for use by templates (default: none)
 
 output options:
   --d3js                generate D3.js output
