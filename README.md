@@ -30,6 +30,18 @@ parameters:
   exclude_component: 'ExcludeFromReport'
 ```
 
+### Software Requirements
+
+This sheet shows all of the functional requirements. Here is how it is built:
+
+1. Get a list of all `TLFR` issues (=functional requirements), regardless of `fix_version`, that have `Dev Ready` or `Active` status.
+
+2. Filter out any that are closed as `junk_resolution`.
+
+3. Sort the list in ascending order by requirement ID, which is one or more decimal numbers separated by dots (ie. `1.10.1` appears after `1.9.2`).
+
+4. List the `TLFR` issues.
+
 ### Traceability Summary
 
 This sheet shows a summary of the tracebility matrix that starts from a functional requirement and traces it to its implementation. Here is how it is built:

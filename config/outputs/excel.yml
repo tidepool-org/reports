@@ -41,9 +41,10 @@ risks: # initial_risk and residual_risk prefix strings
 sheets:
   # sheet names max 31 characters
   cover: !include outputs/excel/cover.yml
-  requirements: !include outputs/excel/traceability_summary.yml
-  med_requirements: !include outputs/excel/traceability_report.yml
-  full_requirements: !include outputs/excel/traceability_report_full.yml
+  requirements: !include outputs/excel/requirements.yml
+  traceability_summary: !include outputs/excel/traceability_summary.yml
+  traceability_report: !include outputs/excel/traceability_report.yml
+  traceability_report_full: !include outputs/excel/traceability_report_full.yml
   # risks: !include outputs/excel/hazard_analysis_original.yml
   risks2: !include outputs/excel/hazard_analysis.yml
   insulin_fidelity: !include outputs/excel/insulin_fidelity.yml

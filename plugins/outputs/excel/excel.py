@@ -99,9 +99,36 @@ class Excel(plugins.output.OutputGenerator):
         self.set_paper(cover, row + 1, col + 1)
 
     #
-    # requirements report
+    # requirements
     #
     def add_requirements_sheet(self, book: xlsxwriter.Workbook, props: dict) -> None:
+        logger.info(f"adding report sheet '{props['name']}'")
+        report = book.add_worksheet(props['name'])
+        columns = Columns(props['columns'])
+        self.set_headings(report, columns)
+
+        # requirements, sorted by requirement ID
+        total_requirements = 0
+        row = 1
+        for req in self.jira.sorted_by_id(self.jira.exclude_junk(self.jira.func_requirements.values(), enforce_versions = False)):
+            log_issue(req)
+
+            self.write_id(report, row, columns['req_id'].column, req)
+            self.write_key_and_summary(report, row, columns['req_key'].column, req)
+            self.write_html(report, row, columns['req_description'].column, req.description)
+            row += 1
+            total_requirements += 1
+
+        report.ignore_errors({ 'number_stored_as_text': xl_range(0, 0, row - 1, columns.last) })
+        self.set_paper(report, row, len(columns))
+        self.set_header_and_footer(report)
+        logger.info(f'total of {total_requirements} requirements')
+        logger.info(f"done adding report sheet '{props['name']}'")
+
+    #
+    # traceability report
+    #
+    def add_traceability_sheet(self, book: xlsxwriter.Workbook, props: dict) -> None:
         logger.info(f"adding report sheet '{props['name']}'")
         report = book.add_worksheet(props['name'])
         columns = Columns(props['columns'])
@@ -154,9 +181,9 @@ class Excel(plugins.output.OutputGenerator):
         logger.info(f"done adding report sheet '{props['name']}'")
 
     #
-    # requirements summary
+    # traceability summary
     #
-    def add_requirements_summary_sheet(self, book: xlsxwriter.Workbook, props: dict) -> None:
+    def add_traceability_summary_sheet(self, book: xlsxwriter.Workbook, props: dict) -> None:
         logger.info(f"adding report sheet '{props['name']}'")
         report = book.add_worksheet(props['name'])
         columns = Columns(props['columns'])

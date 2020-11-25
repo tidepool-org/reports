@@ -1,4 +1,4 @@
-generator: add_requirements_sheet # method name in excel.py
+generator: add_traceability_sheet # method name in excel.py
 name: 'Traceability Report'
 aggregate_risks: true
 columns:
