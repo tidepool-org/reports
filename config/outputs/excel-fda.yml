@@ -47,9 +47,9 @@ sheets:
   traceability_report_full: !include outputs/excel/traceability_report_full.yml
   # risks: !include outputs/excel/hazard_analysis_original.yml
   risks2: !include outputs/excel/hazard_analysis.yml
-  insulin_fidelity: !include outputs/excel/insulin_fidelity.yml
+  # insulin_fidelity: !include outputs/excel/insulin_fidelity.yml
   bugs: !include outputs/excel/bugs.yml
   tests: !include outputs/excel/tests.yml
   # epics: !include outputs/excel/epics.yml
 output:
-  report: output/full-report.xlsx
+  report: output/report.xlsx

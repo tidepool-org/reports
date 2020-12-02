@@ -1,0 +1,14 @@
+# master configuration file for reports
+# Copyright 2020 Tidepool Project
+
+# inputs
+jira: !include inputs/jira.yml
+tests: !include inputs/tests.yml
+
+# outputs
+zip: !include outputs/zip.yml
+html: !include outputs/html.yml
+pdf: !include outputs/pdf.yml
+excel: !include outputs/excel-fda.yml
+graphviz: !include outputs/graphviz.yml
+d3js: !include outputs/d3js.yml
