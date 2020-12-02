@@ -580,6 +580,8 @@ class Excel(plugins.output.OutputGenerator):
             self.write(sheet, row, col, self.passed, self.formats['bold'], end_row)
         elif issue.is_blocked:
             self.write(sheet, row, col, self.blocked, self.formats['bold'], end_row)
+        else:
+            self.write(sheet, row, col, issue.status, end_row = end_row)
 
     def write_id(self, sheet: xlsxwriter.worksheet, row: int, col: int, issue, end_row: int = None, end_col: int = None) -> None:
         self.write(sheet, row, col, str(issue.id), self.formats['summary'], end_row, end_col)
