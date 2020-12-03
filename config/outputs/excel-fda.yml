@@ -27,6 +27,7 @@ formats:
   low_risk: { bg_color: green }
   medium_risk: { bg_color: yellow }
   high_risk: { bg_color: red }
+  unknown_risk: { bg_color: silver }
   page_header: { font_size: 16, bold: true }
   page_footer: { font_size: 12 }
 labels:
