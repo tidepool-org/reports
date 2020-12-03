@@ -72,18 +72,22 @@ class JiraRisk(JiraIssue):
             return f"{val['value']} ({self.jira.get_weight(key, val['id'])})"
         return ''
 
-    def score(self, score: str) -> JiraRiskScore:
-        score = (score or '').lower()
-        if 'green' in score:
+    def score(self, score: str, state: str) -> JiraRiskScore:
+        if score is None or score == '':
+            logger.warn(f"{self.key} {self.fix_versions} {self.status}: {state} risk score is not set")
+            return JiraRiskScore.UNKNOWN
+        normalized_score = (score or '').lower()
+        if 'green' in normalized_score:
             return JiraRiskScore.GREEN
-        elif 'yellow' in score:
+        elif 'yellow' in normalized_score:
             return JiraRiskScore.YELLOW
-        elif 'red' in score:
+        elif 'red' in normalized_score:
             return JiraRiskScore.RED
+        logger.warn(f"{self.key} {self.fix_versions} {self.status}: {state} risk score '{score}' (normalized as '{normalized_score}') does not match a known score")
         return JiraRiskScore.UNKNOWN
 
-    def color(self, score: str) -> str:
-        score = self.score(score)
+    def color(self, score: str, state: str) -> str:
+        score = self.score(score, state)
         if score == JiraRiskScore.GREEN:
             return 'green'
         elif score == JiraRiskScore.YELLOW:

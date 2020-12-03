@@ -123,7 +123,7 @@
                             <td class="summary">{{ full_risk.summary }}</td>
                             <td class="source">{{ full_risk.source }}</td>
                             <td class="status">{{ full_risk.status }}</td>
-                            <td class="score {{ risk_color(full_risk.color(full_risk.residual_risk)) }}">{{ full_risk.residual_risk }}</td>
+                            <td class="score {{ risk_color(full_risk.color(full_risk.residual_risk, 'residual')) }}">{{ full_risk.residual_risk }}</td>
                         </tr>
                         {%- endfor -%}
                     </tbody>
@@ -245,10 +245,10 @@
                             <td class="hazard">{{ risk.hazard }}</td>
                             <td class="severity">{{ risk.initial_severity }}</td>
                             <td class="probability">{{ risk.initial_probability }}</td>
-                            <td class="score {{ risk_color(risk.color(risk.initial_risk)) }}">{{ risk.initial_risk }}</td>
+                            <td class="score {{ risk_color(risk.color(risk.initial_risk, 'initial')) }}">{{ risk.initial_risk }}</td>
                             <td class="severity">{{ risk.residual_severity }}</td>
                             <td class="probability">{{ risk.residual_probability }}</td>
-                            <td class="score {{ risk_color(risk.color(risk.residual_risk)) }}">{{ risk.residual_risk }}</td>
+                            <td class="score {{ risk_color(risk.color(risk.residual_risk, 'residual')) }}">{{ risk.residual_risk }}</td>
                             <td class="benefit">{{ risk.benefit }}</td>
                         </tr>
                     </tbody>

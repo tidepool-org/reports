@@ -12,6 +12,7 @@ from .html import HtmlToExcel
 from .column import Column
 from .columns import Columns
 import plugins.output
+from ...inputs.jira import JiraRiskScore
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +135,7 @@ class Excel(plugins.output.OutputGenerator):
         logger.info(f"done adding report sheet '{props['name']}'")
 
     #
-    # traceability report
+    # traceability report (full and not-so-full)
     #
     def add_traceability_sheet(self, book: xlsxwriter.Workbook, props: dict) -> None:
         logger.info(f"adding report sheet '{props['name']}'")
@@ -169,7 +170,7 @@ class Excel(plugins.output.OutputGenerator):
                 total_verified += 1
 
             risk_row = req_row
-            if columns.get('risk_key'):
+            if columns.get('risk_key'): # include risks?
                 risk_row, mitigated = self.write_risks(report, risk_row, columns['risk_key'].column, req)
 
             row = max(req_row + 1, risk_row, story_row) - 1
@@ -229,7 +230,7 @@ class Excel(plugins.output.OutputGenerator):
         logger.info(f"done adding report sheet '{props['name']}'")
 
     #
-    # epics
+    # epics (not used)
     #
     def add_epics_sheet(self, book: xlsxwriter.Workbook, props: dict):
         logger.info(f"adding report sheet '{props['name']}'")
@@ -268,72 +269,26 @@ class Excel(plugins.output.OutputGenerator):
         self.set_header_and_footer(report)
         logger.info(f"done adding report sheet '{props['name']}'")
 
-
     #
-    # risks
+    # risks (aka Hazard Analysis)
     #
     def add_risks_sheet(self, book: xlsxwriter.Workbook, props: dict):
         logger.info(f"adding report sheet '{props['name']}'")
         report = book.add_worksheet(props['name'])
-        columns = Columns(props['columns'])
-        self.set_headings(report, columns)
-
-        # risks, sorted by harm
-        row = 1
-        for risk in self.jira.sorted_by_harm(self.jira.exclude_junk(self.jira.risks.values(), enforce_versions = False)):
-            log_issue(risk)
-            risk_row = row
-
-            # stories that mitigate this risk, sorted by key
-            story_row = row
-            for story in self.jira.sorted_by_key(self.jira.exclude_junk(risk.mitigated_by, enforce_versions = False)):
-                log_issue(story, 1)
-                self.write_key_and_summary(report, story_row, columns['mitigation_key'].column, story)
-                self.set_outline(report, story_row, row, 1)
-                story_row += 1
-
-            row = max(risk_row + 1, story_row) - 1
-            self.write_key_and_summary(report, risk_row, columns['risk_key'].column, risk, end_row = row)
-            self.write_html(report, risk_row, columns['sequence'].column, risk.sequence, end_row = row)
-            self.write(report, risk_row, columns['source'].column, risk.source, end_row = row)
-            self.write(report, risk_row, columns['harm'].column, risk.harm, end_row = row)
-            self.write(report, risk_row, columns['hazard_category'].column, risk.hazard_category, end_row = row)
-            self.write(report, risk_row, columns['initial_severity'].column, risk.initial_severity, end_row = row)
-            self.write(report, risk_row, columns['initial_probability'].column, risk.initial_probability, end_row = row)
-            self.write(report, risk_row, columns['initial_risk'].column, risk.initial_risk, end_row = row)
-            self.write(report, risk_row, columns['residual_severity'].column, risk.residual_severity, end_row = row)
-            self.write(report, risk_row, columns['residual_probability'].column, risk.residual_probability, end_row = row)
-            self.write(report, risk_row, columns['residual_risk'].column, risk.residual_risk, end_row = row)
-            self.write(report, risk_row, columns['benefit'].column, risk.benefit, end_row = row)
-            row += 1
-
-        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['low'], 'format': self.formats['low_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
-        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['medium'], 'format': self.formats['medium_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
-        self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['high'], 'format': self.formats['high_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
-        self.set_paper(report, row, len(columns))
-        self.set_header_and_footer(report)
-        logger.info(f"done adding report sheet '{props['name']}'")
-
-    #
-    # risks v2
-    #
-    def add_risks_sheet_v2(self, book: xlsxwriter.Workbook, props: dict):
-        logger.info(f"adding report sheet '{props['name']}'")
-        report = book.add_worksheet(props['name'])
-        columns = Columns(props['columns'])
+        columns = Columns(props['columns'], row = 6) # start from row 6 (zero-based) to leave room for risk summary
         self.set_headings(report, columns)
 
         # risks, sorted by harm
         total_risks = 0
         total_initial_scores = self.jira.risk_scores
         total_residual_scores = self.jira.risk_scores
-        row = 1
+        row = 7
         for risk in self.jira.sorted_by_harm(self.jira.exclude_junk(self.jira.risks.values(), enforce_versions = False)):
             log_issue(risk)
             risk_row = row
             total_risks += 1
-            total_initial_scores[risk.score(risk.initial_risk)] += 1
-            total_residual_scores[risk.score(risk.residual_risk)] += 1
+            total_initial_scores[risk.score(risk.initial_risk, 'initial')] += 1
+            total_residual_scores[risk.score(risk.residual_risk, 'residual')] += 1
 
             # list all mitigations in the sheet
             story_row = row
@@ -365,11 +320,7 @@ class Excel(plugins.output.OutputGenerator):
         self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['high'], 'format': self.formats['high_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
-        logger.info(f'total of {total_risks} risks')
-        for key, count in total_initial_scores.items():
-            logger.info(f'total of initial risk {key.name}: {self.percentage(total_risks, count)} risks')
-        for key, count in total_residual_scores.items():
-            logger.info(f'total of residual risk {key.name}: {self.percentage(total_risks, count)} risks')
+        self.write_risk_summary(report, 0, total_risks, total_initial_scores, columns['initial_risk'].column, total_residual_scores, columns['residual_risk'].column)
         logger.info(f"done adding report sheet '{props['name']}'")
 
     #
@@ -378,20 +329,20 @@ class Excel(plugins.output.OutputGenerator):
     def add_insulin_fidelity_sheet(self, book: xlsxwriter.Workbook, props: dict):
         logger.info(f"adding report sheet '{props['name']}'")
         report = book.add_worksheet(props['name'])
-        columns = Columns(props['columns'])
+        columns = Columns(props['columns'], row = 6) # start from row 6 (zero-based) to leave room for risk summary
         self.set_headings(report, columns)
 
         # risks, sorted by harm
         total_risks = 0
         total_initial_scores = self.jira.risk_scores
         total_residual_scores = self.jira.risk_scores
-        row = 1
+        row = 7
         for risk in self.jira.sorted_by_harm(self.jira.filter_by(self.jira.risks.values(), props['filter'])):
             log_issue(risk)
             risk_row = row
             total_risks += 1
-            total_initial_scores[risk.score(risk.initial_risk)] += 1
-            total_residual_scores[risk.score(risk.residual_risk)] += 1
+            total_initial_scores[risk.score(risk.initial_risk, 'initial')] += 1
+            total_residual_scores[risk.score(risk.residual_risk, 'residual')] += 1
 
             # list all mitigations in the sheet
             story_row = row
@@ -428,11 +379,7 @@ class Excel(plugins.output.OutputGenerator):
         self.set_conditional_format(report, {'type': 'text', 'criteria': 'containing', 'value': self.config['risks']['high'], 'format': self.formats['high_risk']}, (1, row - 1), columns.find_all('initial_risk', 'residual_risk'))
         self.set_paper(report, row, len(columns))
         self.set_header_and_footer(report)
-        logger.info(f'total of {total_risks} risks')
-        for key, count in total_initial_scores.items():
-            logger.info(f'total of initial risk {key.name}: {self.percentage(total_risks, count)} risks')
-        for key, count in total_residual_scores.items():
-            logger.info(f'total of residual risk {key.name}: {self.percentage(total_risks, count)} risks')
+        self.write_risk_summary(report, 0, total_risks, total_initial_scores, columns['initial_risk'].column, total_residual_scores, columns['residual_risk'].column)
         logger.info(f"done adding report sheet '{props['name']}'")
 
     #
@@ -542,6 +489,27 @@ class Excel(plugins.output.OutputGenerator):
             self.set_outline(sheet, risk_row, row, 1)
             risk_row += 1
         return ( risk_row, mitigated )
+
+    def write_risk_summary(self, sheet: xlsxwriter.worksheet, start_row: int, total_risks: int, initial_risk_scores: dict, initial_risk_column: int, residual_risk_scores: dict, residual_risk_column: int) -> None:
+        logger.info(f'total of {total_risks} risks')
+        formats = {
+            JiraRiskScore.GREEN: self.formats['low_risk'],
+            JiraRiskScore.YELLOW: self.formats['medium_risk'],
+            JiraRiskScore.RED: self.formats['high_risk'],
+            JiraRiskScore.UNKNOWN: self.formats['unknown_risk'],
+        }
+        row = start_row
+        for key, count in initial_risk_scores.items():
+            logger.info(f'total of initial risk {key.name}: {self.percentage(total_risks, count)} risks')
+            self.write(sheet, row, initial_risk_column, self.percentage(total_risks, count), formats[key])
+            row += 1
+        self.write(sheet, row, initial_risk_column, self.percentage(total_risks, total_risks), self.formats['bold'])
+        row = start_row
+        for key, count in residual_risk_scores.items():
+            logger.info(f'total of residual risk {key.name}: {self.percentage(total_risks, count)} risks')
+            self.write(sheet, row, residual_risk_column, self.percentage(total_risks, count), formats[key])
+            row += 1
+        self.write(sheet, row, residual_risk_column, self.percentage(total_risks, total_risks), self.formats['bold'])
 
     def merge(self, sheet: xlsxwriter.worksheet, row: int, col: int, end_row: int = None, end_col: int = None, value = '', format: xlsxwriter.format = None) -> bool:
         end_row = end_row or row

@@ -1,4 +1,4 @@
-generator: add_risks_sheet_v2 # method name in excel.py
+generator: add_risks_sheet # method name in excel.py
 name: 'Hazard Analysis'
 columns:
   - { width: 11, key: risk_key,               label: 'Risk Key' }
