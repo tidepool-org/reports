@@ -264,4 +264,4 @@ class JiraHelper(plugins.input.InputSource):
 
     @staticmethod
     def sorted_by_fix_version(issues: List[JiraIssue]) -> List[JiraIssue]:
-        return sorted(issues, key = lambda issue: f'{",".join(issue.fix_versions)}:{issue.key}')
+        return sorted(issues, key = lambda issue: f'{",".join(sorted(issue.fix_versions))}:{issue.status}:{issue.key}')
