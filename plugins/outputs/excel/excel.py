@@ -200,7 +200,6 @@ class Excel(plugins.output.OutputGenerator):
 
         # requirements, sorted by requirement ID
         total_requirements = 0
-        total_verified = 0
         row = 1
         for req in self.jira.sorted_by_id(self.jira.exclude_junk(self.jira.func_requirements.values(), enforce_versions = False)):
             log_issue(req)
