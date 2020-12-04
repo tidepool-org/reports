@@ -12,7 +12,7 @@ items:
     format: { font_size: 14, bold: true, border: 0 }
   subtitle2:
     position: A3
-    text: 'Corresponds with Tidepool Loop 1.0.0 (build 326)'
+    text: 'Corresponds with Tidepool Loop 1.0.0 (build 329)'
     format: { font_size: 14, bold: true, border: 0 }
   introduction:
     position: A4
