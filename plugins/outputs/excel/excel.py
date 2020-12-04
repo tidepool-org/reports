@@ -152,13 +152,16 @@ class Excel(plugins.output.OutputGenerator):
             req_row = row
 
             # stories, sorted by issue key
+            verified = False
             story_row = req_row
             for story in self.jira.sorted_by_key(self.jira.exclude_junk(req.defines, enforce_versions = True)):
                 log_issue(story, 1)
-                verified = False
 
                 # tests, sorted by issue key
-                test_row, verified = self.write_tests(report, story_row, columns['test_key'].column, story)
+                test_row, tests_verified = self.write_tests(report, story_row, columns['test_key'].column, story)
+
+                # update verification status
+                verified = verified or story.is_done or tests_verified
 
                 # story summary, possibly across many rows
                 row = max(story_row + 1, test_row) - 1
