@@ -154,7 +154,8 @@ class Excel(plugins.output.OutputGenerator):
             # stories, sorted by issue key
             verified = False
             story_row = req_row
-            for story in self.jira.sorted_by_key(self.jira.exclude_junk(req.defines, enforce_versions = True)):
+            stories = self.jira.sorted_by_key(self.jira.exclude_junk(req.defines, enforce_versions = True))
+            for story in stories:
                 log_issue(story, 1)
 
                 # tests, sorted by issue key
@@ -171,6 +172,11 @@ class Excel(plugins.output.OutputGenerator):
 
             if verified:
                 total_verified += 1
+            else:
+                if len(stories) > 0:
+                    logger.warn(f"{req.key} {req.id} '{req.summary}' has {len(stories)} linked stories that implement it, but none verify it")
+                else:
+                    logger.warn(f"{req.key} {req.id} '{req.summary}' has no linked stories that implement it")
 
             risk_row = req_row
             if columns.get('risk_key'): # include risks?
