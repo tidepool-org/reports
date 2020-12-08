@@ -1,0 +1,9 @@
+# all formats are based on this base format; any fields in them override these settings
+base: { font_name: 'Helvetica Neue', font_size: 10, font_color: '000000', bold: false, text_wrap: true, align: left, valign: top, border: thin }
+summary: { } # same as base
+url: { font_color: '0000ff', underline: single }
+bold: { bold: true }
+low_risk: { bg_color: '00ff00' }
+medium_risk: { bg_color: 'ffff00' }
+high_risk: { bg_color: 'ff0000' }
+unknown_risk: { bg_color: 'e0e0e0' }

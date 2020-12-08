@@ -39,6 +39,7 @@ def read_config(filename: str):
     """
     Read the configuration file (YAML)
     """
+    logger.info(f"reading configuration file {filename}")
     with open(filename, 'r') as config:
         try:
             return yaml.safe_load(config)
@@ -83,7 +84,8 @@ def main():
     group.add_argument('--refresh', '--no-refresh', dest = 'refresh', default = False, action = NegateAction, nargs = 0, help = 'force a refresh of cached data (default: off)')
     group.add_argument('--cache', '--no-cache', dest = 'cache', default = True, action = NegateAction, nargs = 0, help = 'cache data (default: on)')
     group.add_argument('--zip', '--no-zip', dest = 'zip', default = True, action = NegateAction, nargs = 0, help = 'combine output files into a ZIP file (default: off)')
-    group.add_argument('--tag', default = '', action = 'store', nargs = 1, help = 'set arbitrary tag for use by templates (default: none)')
+    group.add_argument('--tag', default = '', action = 'store', help = 'set arbitrary tag for use by templates (default: none)')
+    group.add_argument('--build', default = '', action = 'store', help = 'set build number (default: none)')
 
     # add command line flags for each of the output generators
     group = parser.add_argument_group('output options')
@@ -98,7 +100,7 @@ def main():
     logger.debug('parsing arguments')
 
     config = read_config(args.config)
-    options = { 'verbose': args.verbose, 'generated': datetime.today(), 'refresh_cache': args.refresh, 'tag': args.tag, 'links': args.links }
+    options = { 'verbose': args.verbose, 'generated': datetime.today(), 'refresh_cache': args.refresh, 'tag': args.tag, 'build': args.build, 'links': args.links }
 
     # initialize input sources
     logger.debug('connecting to input sources')

@@ -1,0 +1,4 @@
+passed: '✅ PASSED'
+blocked: '❌ BLOCKED'
+verified: '✅ VERIFIED'
+see_test_strategy: 'See {story_key} for verification tests'

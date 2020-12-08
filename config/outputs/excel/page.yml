@@ -1,0 +1,6 @@
+header:
+  left: 'Tidepool Loop 1.0.0 (build {build_number})'
+  right: '&A'
+footer:
+  left: 'Generated on {timestamp}'
+  right: 'Page &P of &N'

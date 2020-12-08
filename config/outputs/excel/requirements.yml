@@ -1,7 +1,0 @@
-generator: add_requirements_sheet # method name in excel.py
-name: 'Software Requirements'
-columns:
-  - { width: 7,  key: req_id,          label: 'Req ID' }
-  - { width: 11, key: req_key,         label: 'Req Key' }
-  - { width: 50, key: req_summary,     label: 'Req Feature' }
-  - { width: 100, key: req_description, label: 'Req Description' }

@@ -1,0 +1,4 @@
+# initial_risk and residual_risk prefix strings
+low: Green
+medium: Yellow
+high: Red
