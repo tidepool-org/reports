@@ -6,7 +6,29 @@ This repo contains a Python script that can generate various reports from Tidepo
 
 ## Reports
 
-This covers the reports found in the Excel output.
+This covers the reports found in the Excel output. The Excel output file is built from a template file from the `templates/excel` folder.
+
+The script opens the Excel template file, and examines each worksheet within it. Any cell value that contains substitutions in the format `{variable}` are replaced with the value of that variable. There are currently only three variables defined:
+
+* `timestamp`: timestamp, generated using `datetime.today().astimezone().strftime('%Y-%m-%d %H:%M:%S %Z')`
+* `build_number`: build number, set with the `--build` option
+* `tag`: arbitrary text tag, set with the `--tag` option
+
+For example:
+
+`Automatically generated on {timestamp}`
+
+would yield value such as:
+
+`Automatically generated on 2020-12-08 01:52:32 EST`
+
+In addition, each worksheet may contain an insertion in the format `<<<insert: method_name(properties)>>>` where `method_name` is the name of a method in [excel.py](plugins/outputs/excel/excel.py), and `properties` is an optional Python dictionary passed to the method. The dictionary elements use the `'key': value` format.
+
+For example:
+
+`<<<insert: traceability_report('full': True)>>>`
+
+would yield a list Jira issues that make up the traceability report.
 
 The reports pull data from the following Jira projects related to Tidepool Loop:
 
@@ -110,7 +132,7 @@ This sheet shows a hazard analysis, starting from the risks and tracing through 
 
 This sheet is a condensed version of the hazard analysis sheet for a subset of risks specifically related to insulin delivery fidelity. It lists each `TLR` risk, and summarizes the mitigating functional requirements (`TLFR`) and related development tasks (`LOOP`) and verification tests (`LOOP`).
 
-### Open Defects
+### Unresolved Defects
 
 This sheet is a simple list of all open defects (=bugs) in the `LOOP` project, regardless of `fix_version`.
 
