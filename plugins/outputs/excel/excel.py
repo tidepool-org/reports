@@ -39,6 +39,10 @@ class Excel(plugins.output.OutputGenerator):
         return self.config['build']
 
     @property
+    def tag(self):
+        return self.config['tag']
+
+    @property
     def passed(self):
         return self.labels['passed']
 
@@ -73,9 +77,9 @@ class Excel(plugins.output.OutputGenerator):
                 for cell in row:
                     # substitution?
                     if re.search(r'\{.+\}', str(cell.value)):
-                        sub = str(cell.value).format(timestamp = self.generated_date, build_number = self.build_number)
-                        logger.info(f"replacing '{cell.value}' with '{sub}'")
-                        cell.value = sub
+                        text = self.format_text(cell.value)
+                        logger.info(f"replacing '{cell.value}' with '{text}'")
+                        cell.value = text
                     # insertion?
                     insertion = re.search(r'<<<insert: (\w+)\((.*)\)>>>', str(cell.value))
                     if insertion:
@@ -511,7 +515,7 @@ class Excel(plugins.output.OutputGenerator):
 
     def format_text(self, text: str) -> str:
         if text:
-            return text.format(timestamp = self.generated_date, build_number = self.build_number)
+            return text.format(timestamp = self.generated_date, build_number = self.build_number, tag = self.tag)
         return ''
 
     def set_header_or_footer(self, elem, sections) -> None:
