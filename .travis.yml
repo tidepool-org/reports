@@ -8,12 +8,14 @@ before_script:
 - git config --local user.name "travis-ci-tidepool"
 - git config --local user.email "travis-ci@tidepool.org"
 - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y-%m-%dT%H.%M.%S')_$(git log --format=%h -1)}
+# update this if there is a new release candidate
+- export LOOP_BUILD_NUMBER=329
 - python -m pylint --jobs 8 ./**/*.py
 script:
 # generate Excel file without hyperlinks; cache Jira queries
-- python report.py --config config/report-fda.yml  --verbose --refresh --cache --no-links --excel --tag $TRAVIS_TAG --build 329
+- python report.py --config config/report-fda.yml  --verbose --refresh --cache --no-links --excel --tag $TRAVIS_TAG --build $LOOP_BUILD_NUMBER
 # generate versions with hyperlinks using cached Jira queries
-- python report.py --config config/report.yml --verbose --cache --html --excel --d3js --zip --tag $TRAVIS_TAG --build 329
+- python report.py --config config/report.yml --verbose --cache --html --excel --d3js --zip --tag $TRAVIS_TAG --build $LOOP_BUILD_NUMBER
 before_deploy:
 - git tag $TRAVIS_TAG
 deploy:
