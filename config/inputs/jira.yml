@@ -10,13 +10,14 @@ parameters:
   fix_version: 'FDA 510(k) Sub' # used in exclude_junk filter as well
   fix_version_risks: 'SOP-006 v7'
   component_criteria: '(component IN (iAGC) OR component IS EMPTY OR component NOT IN (ExcludeFromReport, "iOS Compatibility"))'
+  component_criteria_bugs: '(component IN (iAGC) AND component NOT IN (ExcludeFromReport, "iOS Compatibility"))'
 queries:
   func_requirements: project=TLFR AND issuetype="Functional Requirement" AND status IN ("Dev Ready", Active) AND {component_criteria}
   user_requirements: project=TLFR AND issuetype="User Requirement" AND {component_criteria}
   risks: project=TLR AND (fixVersion="{fix_version_risks}" OR fixVersion IS EMPTY) AND issuetype IN (Story, Task) AND {component_criteria}
   epics: project=LOOP AND fixVersion="{fix_version}" AND issuetype IN (Epic) AND {component_criteria}
   stories: project=LOOP AND fixVersion="{fix_version}" AND issuetype IN (Story, Task, Sub-task) AND {component_criteria}
-  bugs: project=LOOP AND issuetype IN (Bug) AND resolution=Unresolved AND {component_criteria}
+  bugs: project=LOOP AND issuetype IN (Bug) AND resolution=Unresolved AND {component_criteria_bugs}
   tests: project=LOOP AND issuetype IN (Test, "Test Execution", "Sub Test Execution") AND {component_criteria}
   instructions: project=IFU AND {component_criteria}
 fields:
