@@ -7,19 +7,18 @@ filters:
   done_status: [ 'Waiting for Approval', 'Waiting for Deployment', 'Closed' ]
   blocked_status: [ 'Blocked' ]
 parameters:
-  fix_version: 'FDA 510(k) Sub'
+  fix_version: 'FDA 510(k) Sub' # used in exclude_junk filter as well
   fix_version_risks: 'SOP-006 v7'
-  include_component: 'iAGC'
-  exclude_component: 'ExcludeFromReport'
+  component_criteria: '(component IN (iAGC) OR component IS EMPTY OR component NOT IN (ExcludeFromReport, "iOS Compatibility"))'
 queries:
-  func_requirements: project=TLFR AND issuetype="Functional Requirement" AND status IN ("Dev Ready", "Active") AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
-  user_requirements: project=TLFR AND issuetype="User Requirement" AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
-  risks: project=TLR AND (fixVersion="{fix_version_risks}" OR fixVersion IS EMPTY) AND issuetype IN (Story, Task) AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
-  epics: project=LOOP AND fixVersion="{fix_version}" AND issuetype="Epic" AND (component NOT IN ({exclude_component}) OR component is EMPTY OR component IN ({include_component}))
-  stories: project=LOOP AND (fixVersion="{fix_version}" OR component="{include_component}") AND issuetype IN (Story, Task, Sub-task) AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
-  bugs: project=LOOP AND fixVersion="{fix_version}" AND issuetype IN (Bug) AND resolution=Unresolved AND (component NOT IN ({exclude_component}) OR component IS EMPTY)
-  tests: project=LOOP AND issuetype IN ("Test", "Test Execution", "Sub Test Execution") AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
-  instructions: project=IFU AND (component NOT IN ({exclude_component}) OR component IS EMPTY OR component IN ({include_component}))
+  func_requirements: project=TLFR AND issuetype="Functional Requirement" AND status IN ("Dev Ready", Active) AND {component_criteria}
+  user_requirements: project=TLFR AND issuetype="User Requirement" AND {component_criteria}
+  risks: project=TLR AND (fixVersion="{fix_version_risks}" OR fixVersion IS EMPTY) AND issuetype IN (Story, Task) AND {component_criteria}
+  epics: project=LOOP AND fixVersion="{fix_version}" AND issuetype IN (Epic) AND {component_criteria}
+  stories: project=LOOP AND fixVersion="{fix_version}" AND issuetype IN (Story, Task, Sub-task) AND {component_criteria}
+  bugs: project=LOOP AND issuetype IN (Bug) AND resolution=Unresolved AND {component_criteria}
+  tests: project=LOOP AND issuetype IN (Test, "Test Execution", "Sub Test Execution") AND {component_criteria}
+  instructions: project=IFU AND {component_criteria}
 fields:
   epic_key: customfield_10014 # "Epic Link"
   functional_requirements: customfield_10132 # "Functional Requirements"

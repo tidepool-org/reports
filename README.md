@@ -48,8 +48,8 @@ filters:
   blocked_status: [ 'Blocked' ]
 parameters:
   fix_version: 'FDA 510(k) Sub'
-  include_component: 'iAGC'
-  exclude_component: 'ExcludeFromReport'
+  fix_version_risks: 'SOP-006 v7'
+  component_criteria: '(component IN (iAGC) OR component IS EMPTY) AND component NOT IN (ExcludeFromReport)'
 ```
 
 ### Software Requirements
