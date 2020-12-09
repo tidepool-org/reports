@@ -113,3 +113,7 @@ class JiraBase(ABC):
     @property
     def is_blocked(self) -> bool:
         return self.status in self.jira.blocked_status
+
+    @property
+    def is_device_qualification(self):
+        return set(self.components) & set(self.jira.device_qual_component)

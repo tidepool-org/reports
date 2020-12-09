@@ -141,6 +141,7 @@ class Excel(plugins.output.OutputGenerator):
         # requirements, sorted by requirement ID
         total_requirements = 0
         total_verified = 0
+        total_future = 0
         row = start_row
         for req in self.jira.sorted_by_id(self.jira.exclude_junk(self.jira.func_requirements.values(), enforce_versions = False)):
             log_issue(req)
@@ -167,13 +168,18 @@ class Excel(plugins.output.OutputGenerator):
                 self.set_outline(sheet, story_row, req_row, 1)
                 story_row = row + 1
 
-            if verified:
-                total_verified += 1
+            if req.is_device_qualification and story_row == req_row: # there were no attached implementation stories?
+                logger.info(f"{req.key} {req.id} '{req.summary}' is a device qualification requirement -> future verification")
+                self.write(sheet, story_row, story_col, self.labels['device_qual_req'], format = 'bold', end_col = story_col + 4)
+                total_future += 1
             else:
-                if len(stories) > 0:
-                    logger.warn(f"{req.key} {req.id} '{req.summary}' has {len(stories)} linked stories that implement it, but none verify it")
+                if verified:
+                    total_verified += 1
                 else:
-                    logger.warn(f"{req.key} {req.id} '{req.summary}' has no linked stories that implement it")
+                    if len(stories) > 0:
+                        logger.warn(f"{req.key} {req.id} '{req.summary}' has {len(stories)} linked stories that implement it, but none verify it")
+                    else:
+                        logger.warn(f"{req.key} {req.id} '{req.summary}' has no linked stories that implement it")
 
             risk_row = req_row
             if props.get('full'): # include risks?
@@ -192,6 +198,7 @@ class Excel(plugins.output.OutputGenerator):
         self.set_paper(sheet, start_row - 1)
         logger.info(f'total of {total_requirements} requirements')
         logger.info(f'total of {self.percentage(total_requirements, total_verified)} verified requirements')
+        logger.info(f'total of {self.percentage(total_requirements, total_future)} requirements to be verified in the future')
         logger.info(f"done adding report sheet '{sheet.title}'")
 
     #
@@ -218,6 +225,10 @@ class Excel(plugins.output.OutputGenerator):
                     self.write(sheet, story_row, story_col + 2, self.verified, format = 'bold')
                 self.set_outline(sheet, story_row, req_row, 1)
                 story_row += 1
+
+            if req.is_device_qualification and story_row == req_row: # there were no attached implementation stories?
+                logger.info(f"{req.key} {req.id} '{req.summary}' is a device qualification requirement -> future verification")
+                self.write(sheet, story_row, story_col, self.labels['device_qual_req'], format = 'bold', end_col = story_col + 2)
 
             row = max(req_row + 1, story_row) - 1
             self.write_id(sheet, req_row, col, req, end_row = row)

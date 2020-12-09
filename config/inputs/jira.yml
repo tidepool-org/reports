@@ -6,6 +6,7 @@ filters:
   junk_resolution: [ 'Duplicate', "Won't Do", 'Deprecated', 'Cannot Reproduce', 'As Designed' ]
   done_status: [ 'Waiting for Approval', 'Waiting for Deployment', 'Closed' ]
   blocked_status: [ 'Blocked' ]
+  device_qual_component: [ 'Device Qualification' ]
 parameters:
   fix_version: 'FDA 510(k) Sub' # used in exclude_junk filter as well
   fix_version_risks: 'SOP-006 v7'

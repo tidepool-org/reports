@@ -31,14 +31,18 @@ class JiraIssue(JiraBase):
 
     @property
     def fix_versions(self) -> List[str]:
-        return [ fix_version['name'] for fix_version in self.fields['fixVersions'] ]
+        return [ version['name'] for version in self.fields['fixVersions'] ]
 
     @property
-    def affects_version(self):
-        return [ affects_version['name'] for affects_version in self.fields['versions'] ]
+    def affects_versions(self) -> List[str]:
+        return [ version['name'] for version in self.fields['versions'] ]
 
     @property
-    def links(self):
+    def components(self) -> List[str]:
+        return [ component['name'] for component in self.fields['components'] ]
+
+    @property
+    def links(self) -> List[JiraLink]:
         return [ JiraLink(link, self.jira) for link in self.fields['issuelinks'] ]
 
     @property

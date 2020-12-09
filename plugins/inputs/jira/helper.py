@@ -56,6 +56,7 @@ class JiraHelper(plugins.input.InputSource):
         self.junk_resolution = self.config['filters']['junk_resolution']
         self.done_status = self.config['filters']['done_status']
         self.blocked_status = self.config['filters']['blocked_status']
+        self.device_qual_component = self.config['filters']['device_qual_component']
         self.field_list = [ '*all', *[ f'-{field}' for field in self.config['exclude_fields'] ] ]
         logger.debug(f"requesting fields: {', '.join(self.field_list)}")
         self.missed = { }
