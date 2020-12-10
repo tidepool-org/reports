@@ -361,12 +361,13 @@ class Excel(plugins.output.OutputGenerator):
             log_issue(bug)
             col = start_col
 
-            self.write_key_and_summary(sheet, row, col, bug, end_row = row)
-            self.write_status(sheet, row, col + 2, bug, end_row = row)
-            self.write(sheet, row, col + 3, ', '.join(bug.fix_versions), end_row = row)
+            self.write_key_and_summary(sheet, row, col, bug)
+            self.write_status(sheet, row, col + 2, bug)
+            self.write(sheet, row, col + 3, ', '.join(bug.fix_versions))
+            self.write(sheet, row, col + 4, bug.reason_for_deferral)
             row += 1
         if row == start_row:
-            self.write(sheet, row, start_col, props['empty'], end_col = start_col + 3)
+            self.write(sheet, row, start_col, props['empty'], end_col = start_col + 4)
 
         self.set_paper(sheet, start_row - 1)
         logger.info(f"done adding report sheet '{sheet.title}'")

@@ -70,6 +70,10 @@ class JiraBase(ABC):
     def raw_summary(self):
         return self.fields['summary']
 
+    @property
+    def reason_for_deferral(self):
+        return self.fields[self.jira.fields['reason_for_deferral']]
+
     def is_a(self, type_name: str) -> bool:
         issue_type = self.jira.issue_types[type_name]
         return self.type in issue_type['ids'] and self.project_key in issue_type['projects']

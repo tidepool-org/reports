@@ -41,6 +41,7 @@ fields:
   benefit: customfield_10142 # "Requirement ID"
   risk_level: customfield_10027 # "Risk Level"
   uea_level: customfield_10028 # "User Experience Assessment Level"
+  reason_for_deferral: customfield_10162 # "Reason for Deferral"
 issue_types:
   epic:                { ids: [ 10000 ], projects: [ LOOP, TLR, TLFR, IFU ] }
   story:               { ids: [ 10001, 10002 ], projects: [ LOOP ] }
