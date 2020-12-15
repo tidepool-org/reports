@@ -243,6 +243,35 @@ class Excel(plugins.output.OutputGenerator):
         logger.info(f"done adding report sheet '{sheet.title}'")
 
     #
+    # Verification Test Report
+    #
+    def verification_report(self, sheet: openpyxl.worksheet, start_row: int, start_col: int, props: dict = { }) -> None:
+        logger.info(f"adding report sheet '{sheet.title}'")
+
+        # stories, sorted by issue key
+        row = start_row
+        col = start_col
+        stories = self.jira.sorted_by_key(self.jira.exclude_junk(self.jira.stories.values(), enforce_versions = True))
+        for story in stories:
+            log_issue(story, 1)
+            story_row = row
+
+            # tests, sorted by issue key
+            test_row, tests_verified = self.write_tests(sheet, story_row, col + 2, story)
+
+            # update verification status
+            verified = story.is_done or tests_verified
+
+            # story summary, possibly across many rows
+            row = max(story_row + 1, test_row) - 1
+            self.write_key_and_summary(sheet, story_row, col, story, end_row = row)
+            self.set_outline(sheet, story_row, row, 1)
+
+            row += 1
+
+        logger.info(f"done adding report sheet '{sheet.title}'")
+
+    #
     # Hazard Analysis
     #
     def hazard_analysis(self, sheet: openpyxl.worksheet, start_row: int, start_col: int, props: dict = { }) -> None:
