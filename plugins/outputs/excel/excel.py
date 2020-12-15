@@ -286,7 +286,6 @@ class Excel(plugins.output.OutputGenerator):
             self.write(sheet, risk_row, col + 13, risk.residual_severity, end_row = row)
             self.write(sheet, risk_row, col + 14, risk.residual_probability, end_row = row)
             self.write(sheet, risk_row, col + 15, risk.residual_risk, format = self.risk_formats[residual_risk_score], end_row = row)
-            self.write(sheet, risk_row, col + 16, risk.benefit, end_row = row)
             row += 1
 
         self.set_paper(sheet, start_row - 1)
