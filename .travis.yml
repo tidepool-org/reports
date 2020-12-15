@@ -8,8 +8,10 @@ before_script:
 - git config --local user.name "travis-ci-tidepool"
 - git config --local user.email "travis-ci@tidepool.org"
 - export TRAVIS_TAG=${TRAVIS_TAG:-$(date +'%Y-%m-%dT%H.%M.%S')_$(git log --format=%h -1)}
-# update this if there is a new release candidate
-- export LOOP_BUILD_NUMBER=329
+########################################################
+# update this build number when there is a new release candidate
+- export LOOP_BUILD_NUMBER=332
+########################################################
 - python -m pylint --jobs 8 ./**/*.py
 script:
 # generate Excel file without hyperlinks; cache Jira queries
