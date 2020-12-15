@@ -365,6 +365,7 @@ class Excel(plugins.output.OutputGenerator):
             self.write_status(sheet, row, col + 2, bug)
             self.write(sheet, row, col + 3, ', '.join(bug.fix_versions))
             self.write(sheet, row, col + 4, bug.reason_for_deferral)
+            self.write(sheet, row, col + 5, bug.risk_level)
             if not bug.reason_for_deferral:
                 logger.warn(f"{bug.key} ({','.join(bug.fix_versions)}): unresolved anomaly without reason for deferral")
             row += 1
