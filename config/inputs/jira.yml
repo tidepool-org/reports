@@ -26,7 +26,8 @@ fields:
   functional_requirements: customfield_10132 # "Functional Requirements"
   done_criteria: customfield_10072 # "Done Criteria"
   test_strategy: customfield_10036 # "Test Strategy"
-  reference_id: customfield_10140 # "Reference ID"
+  old_reference_id: customfield_10140 # "OLD Reference ID" - being deprecated
+  reference_id: customfield_10165 # "Reference ID"
   source: customfield_10115 # "Source"
   sequence_of_events: customfield_10144 # "Sequence of Events"
   harm: customfield_10089 # SoftComply "Harm"
