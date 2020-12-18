@@ -1,0 +1,23 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@0.2.1
+
+jobs:
+  build:
+    environment:
+      LOOP_BUILD_NUMBER: 332
+    executor: python/default
+    steps:
+      - checkout
+      - python/load-cache
+      - python/install-deps
+      - python/save-cache
+      - run:
+          command: ./report.py --config config/report-fda.yml  --verbose --refresh --cache --no-links --excel --tag $CIRCLE_JOB --build $LOOP_BUILD_NUMBER
+          name: Generate report
+
+workflows:
+  main:
+    jobs:
+      - build
