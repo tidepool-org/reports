@@ -1,0 +1,8 @@
+page: !include outputs/excel/page.yml
+formats: !include outputs/excel/formats.yml
+labels: !include outputs/excel/labels.yml
+risks: !include outputs/excel/risks.yml
+template:
+  report: templates/excel/fda-template-email-08.xlsx
+output:
+  report: output/report.xlsx

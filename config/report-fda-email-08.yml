@@ -1,0 +1,8 @@
+# master configuration file for email 08 response
+# Copyright 2021 Tidepool Project
+
+# inputs
+jira: !include inputs/jira.yml
+
+# outputs
+excel: !include outputs/excel-fda-email-08.yml
