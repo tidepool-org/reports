@@ -144,8 +144,10 @@ class Excel(plugins.output.OutputGenerator):
         total_future = 0
         row = start_row
         if 'filter' in props:
-            logger.info(f"filtering requirements by {props['filter']}")
-        for req in self.jira.sorted_by_id(self.jira.exclude_junk(self.jira.filter_by(self.jira.func_requirements.values(), props['filter']), enforce_versions = False)):
+            logger.info(f"filtering requirements by keys: {props['filter']}")
+        if 'filter_id' in props:
+            logger.info(f"filtering requirements by ID: {props['filter_id']}")
+        for req in self.jira.sorted_by_id(self.jira.exclude_junk(self.jira.filter_by_id(self.jira.filter_by_key(self.jira.func_requirements.values(), props.get('filter')), props.get('filter_id')), enforce_versions = False)):
             log_issue(req)
             req_row = row
             col = start_col
@@ -286,7 +288,7 @@ class Excel(plugins.output.OutputGenerator):
         row = start_row
         if 'filter' in props:
             logger.info(f"filtering risks by {props['filter']}")
-        for risk in self.jira.sorted_by_harm(self.jira.exclude_junk(self.jira.filter_by(self.jira.risks.values(), props['filter']), enforce_versions = False)):
+        for risk in self.jira.sorted_by_harm(self.jira.exclude_junk(self.jira.filter_by_key(self.jira.risks.values(), props.get('filter')), enforce_versions = False)):
             log_issue(risk)
             risk_row = row
             col = start_col
@@ -336,7 +338,7 @@ class Excel(plugins.output.OutputGenerator):
         total_initial_scores = self.jira.risk_scores
         total_residual_scores = self.jira.risk_scores
         row = start_row
-        for risk in self.jira.sorted_by_harm(self.jira.filter_by(self.jira.risks.values(), props['filter'])):
+        for risk in self.jira.sorted_by_harm(self.jira.filter_by_key(self.jira.risks.values(), props.get('filter'))):
             log_issue(risk)
             risk_row = row
             col = start_col

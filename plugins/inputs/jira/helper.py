@@ -238,9 +238,16 @@ class JiraHelper(plugins.input.InputSource):
         return [ issue for issue in issues if not issue.is_junk ]
 
     @staticmethod
-    def filter_by(issues: List[JiraIssue], filter: List[str]) -> List[JiraIssue]:
+    def filter_by_key(issues: List[JiraIssue], filter: List[str]) -> List[JiraIssue]:
         if filter:
             return [ issue for issue in issues if issue.key in filter ]
+        return issues
+
+    @staticmethod
+    def filter_by_id(issues: List[JiraIssue], filter: List[str]) -> List[JiraIssue]:
+        if filter:
+            pattern = re.compile(f"^({'|'.join(filter)})")
+            return [ issue for issue in issues if pattern.match(issue.id) ]
         return issues
 
     @staticmethod
