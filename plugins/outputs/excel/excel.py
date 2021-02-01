@@ -187,7 +187,7 @@ class Excel(plugins.output.OutputGenerator):
 
             risk_row = req_row
             if props.get('full'): # include risks?
-                risk_row, mitigated = self.write_risks(sheet, risk_row, story_col + 6, req)
+                risk_row, mitigated = self.write_risks(sheet, risk_row, story_col + 6, req, filter = props.get('filter_risks'))
 
             row = max(req_row + 1, risk_row, story_row) - 1
             self.write_id(sheet, req_row, col, req, end_row = row)
@@ -301,10 +301,15 @@ class Excel(plugins.output.OutputGenerator):
             # list all mitigations in the sheet
             story_row = row
             story_col = col + 10
+            offset = 0
+            if 'mitigation_id' in props:
+                offset = 1
             for mitigation in self.jira.sorted_by_key(risk.mitigations):
-                self.write_key_and_summary(sheet, story_row, story_col, mitigation)
+                if offset > 0 and mitigation.is_func_requirement:
+                    self.write(sheet, story_row, story_col + 0, mitigation.id)
+                self.write_key_and_summary(sheet, story_row, story_col + offset + 0, mitigation)
                 logger.debug(f"""{mitigation.key}: '{mitigation.description}'""")
-                self.write_html(sheet, story_row, story_col + 2, mitigation.description)
+                self.write_html(sheet, story_row, story_col + offset + 2, mitigation.description)
                 self.set_outline(sheet, story_row, row, 1)
                 story_row += 1
 
@@ -479,10 +484,12 @@ class Excel(plugins.output.OutputGenerator):
             verified = verified or issue.is_done
         return ( test_row, verified )
 
-    def write_risks(self, sheet: openpyxl.worksheet, row: int, col: int, issue) -> Tuple[int, bool]:
+    def write_risks(self, sheet: openpyxl.worksheet, row: int, col: int, issue, filter: List[str]) -> Tuple[int, bool]:
         risk_row = row
         mitigated = False
-        for risk in self.jira.sorted_by_key(self.jira.exclude_junk(issue.risks, enforce_versions = False)):
+        if filter:
+            logger.info(f"filtering risks by keys: {filter}")
+        for risk in self.jira.sorted_by_key(self.jira.exclude_junk(self.jira.filter_by_key(issue.risks, filter), enforce_versions = False)):
             self.write_key_and_summary(sheet, risk_row, col, risk)
             mitigated = mitigated or risk.is_done
             self.set_outline(sheet, risk_row, row, 1)
