@@ -106,8 +106,9 @@ def main():
     logger.debug('connecting to input sources')
     inputs = { }
     for plugin in plugin_loader.plugins.input.values():
-        logger.debug(f'connecting to {plugin.name}')
-        inputs[plugin.key] = plugin({ **config[plugin.key], **options })
+        if plugin.key in config:
+            logger.debug(f'connecting to {plugin.name}')
+            inputs[plugin.key] = plugin({ **config[plugin.key], **options })
 
     logger.debug('execute selected output generators')
     files = set()
@@ -117,7 +118,7 @@ def main():
         files.update(plugin({ **config[plugin.key], **options }, inputs).generate())
         logger.info(f'done generating {plugin.name} output')
 
-    if args.zip:
+    if args.zip and 'zip' in config:
         logger.info(f"generating ZIP file {config['zip']['output']} from {files}")
         with ZipFile(config['zip']['output'], mode = 'w', compression = ZIP_DEFLATED) as zipfile:
             for file in files:
