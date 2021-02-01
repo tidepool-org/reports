@@ -282,7 +282,8 @@ class Excel(plugins.output.OutputGenerator):
         total_initial_scores = self.jira.risk_scores
         total_residual_scores = self.jira.risk_scores
         row = start_row
-        for risk in self.jira.sorted_by_harm(self.jira.exclude_junk(self.jira.risks.values(), enforce_versions = False)):
+        logger.info(f"filtering risks by {props['filter']}")
+        for risk in self.jira.sorted_by_harm(self.jira.exclude_junk(self.jira.filter_by(self.jira.risks.values(), props['filter']), enforce_versions = False)):
             log_issue(risk)
             risk_row = row
             col = start_col

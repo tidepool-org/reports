@@ -239,7 +239,9 @@ class JiraHelper(plugins.input.InputSource):
 
     @staticmethod
     def filter_by(issues: List[JiraIssue], filter: List[str]) -> List[JiraIssue]:
-        return [ issue for issue in issues if issue.key in filter ]
+        if filter:
+            return [ issue for issue in issues if issue.key in filter ]
+        return issues
 
     @staticmethod
     def sorted_by_key(issues: List[JiraIssue]) -> List[JiraIssue]:
