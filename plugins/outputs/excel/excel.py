@@ -323,9 +323,9 @@ class Excel(plugins.output.OutputGenerator):
             self.write(sheet, risk_row, col + 7, risk.initial_severity, end_row = row)
             self.write(sheet, risk_row, col + 8, risk.initial_probability, end_row = row)
             self.write(sheet, risk_row, col + 9, risk.initial_risk, format = self.risk_formats[initial_risk_score], end_row = row)
-            self.write(sheet, risk_row, col + 13, risk.residual_severity, end_row = row)
-            self.write(sheet, risk_row, col + 14, risk.residual_probability, end_row = row)
-            self.write(sheet, risk_row, col + 15, risk.residual_risk, format = self.risk_formats[residual_risk_score], end_row = row)
+            self.write(sheet, risk_row, col + offset + 13, risk.residual_severity, end_row = row)
+            self.write(sheet, risk_row, col + offset + 14, risk.residual_probability, end_row = row)
+            self.write(sheet, risk_row, col + offset + 15, risk.residual_risk, format = self.risk_formats[residual_risk_score], end_row = row)
             row += 1
 
         self.set_paper(sheet, start_row - 1)
