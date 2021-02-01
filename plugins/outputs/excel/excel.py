@@ -143,7 +143,9 @@ class Excel(plugins.output.OutputGenerator):
         total_verified = 0
         total_future = 0
         row = start_row
-        for req in self.jira.sorted_by_id(self.jira.exclude_junk(self.jira.func_requirements.values(), enforce_versions = False)):
+        if 'filter' in props:
+            logger.info(f"filtering requirements by {props['filter']}")
+        for req in self.jira.sorted_by_id(self.jira.exclude_junk(self.jira.filter_by(self.jira.func_requirements.values(), props['filter']), enforce_versions = False)):
             log_issue(req)
             req_row = row
             col = start_col
@@ -282,7 +284,8 @@ class Excel(plugins.output.OutputGenerator):
         total_initial_scores = self.jira.risk_scores
         total_residual_scores = self.jira.risk_scores
         row = start_row
-        logger.info(f"filtering risks by {props['filter']}")
+        if 'filter' in props:
+            logger.info(f"filtering risks by {props['filter']}")
         for risk in self.jira.sorted_by_harm(self.jira.exclude_junk(self.jira.filter_by(self.jira.risks.values(), props['filter']), enforce_versions = False)):
             log_issue(risk)
             risk_row = row
